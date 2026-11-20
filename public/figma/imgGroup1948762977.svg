@@ -1,0 +1,19 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="34" height="33.9999" viewBox="0 0 34 33.9999" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Group 1948762977">
+<g id="Ellipse 5697">
+<ellipse cx="17" cy="17" rx="16" ry="16" fill="url(#paint0_linear_0_117)"/>
+<mask id="stroke0_0_117" maskUnits="userSpaceOnUse" x="0" y="0" width="34" height="34" fill="black">
+<rect fill="white" width="34" height="34"/>
+<path d="M33 17C33 25.8365 25.8365 32.9999 17 32.9999C8.16344 32.9999 1 25.8365 1 17C1 8.16342 8.16344 1 17 1C25.8365 1 33 8.16342 33 17Z"/>
+</mask>
+<ellipse cx="17" cy="17" rx="16" ry="16" stroke-width="2" stroke="black" mask="url(#stroke0_0_117)"/>
+</g>
+<path id="Union" d="M21.2119 12.5508L15.9278 20.2344H21.4981V23.1982H18.4111V25.0967H15.5615V23.1982H12V20.4443L17.2842 12.8398H12.2139V9.90235H21.2119V12.5508ZM18.4111 9.89942H15.5615V8H18.4111V9.89942Z" fill="black"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_117" x1="3" y1="27.6666" x2="33" y2="16.9999" gradientUnits="userSpaceOnUse">
+<stop stop-color="#FFA200"/>
+<stop offset="1" stop-color="#FFCC00"/>
+</linearGradient>
+</defs>
+</svg>

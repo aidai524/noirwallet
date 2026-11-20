@@ -1,0 +1,699 @@
+@import "tailwindcss";
+
+html,
+body,
+#root {
+  margin: 0;
+  background: #000;
+  color: #fff;
+}
+
+body {
+  font-family: "DM Sans", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Figma 导出的字体族名带字重后缀，映射到实际的可变字体。 */
+[class*="DM_Sans:Thin"] {
+  font-family: "DM Sans", sans-serif !important;
+  font-weight: 100 !important;
+}
+[class*="DM_Sans:Regular"] {
+  font-family: "DM Sans", sans-serif !important;
+  font-weight: 400 !important;
+}
+[class*="DM_Sans:Medium"] {
+  font-family: "DM Sans", sans-serif !important;
+  font-weight: 500 !important;
+}
+[class*="DM_Sans:SemiBold"] {
+  font-family: "DM Sans", sans-serif !important;
+  font-weight: 600 !important;
+}
+[class*="DM_Sans:Bold"] {
+  font-family: "DM Sans", sans-serif !important;
+  font-weight: 700 !important;
+}
+[class*="DM_Sans:Black"] {
+  font-family: "DM Sans", sans-serif !important;
+  font-weight: 900 !important;
+}
+[class*="Doto:Regular"] {
+  font-family: "Doto", sans-serif !important;
+  font-weight: 400 !important;
+}
+
+/* 设计稿里的遮罩类名。Tailwind 没有 mask-alpha / mask-no-clip 这两个短名。 */
+@utility mask-alpha {
+  mask-mode: alpha;
+}
+@utility mask-no-clip {
+  mask-clip: no-clip;
+}
+
+[data-name="Landing page"] [role="button"] {
+  cursor: pointer;
+}
+[data-name="Landing page"] [role="button"]:focus-visible {
+  outline: 2px solid #00d18a;
+  outline-offset: 4px;
+}
+
+/* 顶部菜单悬停。只改颜色，不改位移，避免绝对定位的导航被挤偏。 */
+.nav-logo,
+.nav-wordmark,
+.nav-link,
+.nav-install {
+  transition:
+    color 160ms ease,
+    opacity 160ms ease,
+    background-color 160ms ease,
+    background-image 160ms ease;
+}
+
+.nav-logo:hover {
+  opacity: 0.72;
+}
+
+.nav-wordmark {
+  background-image: linear-gradient(90deg, #ffffff 0%, #999999 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.nav-wordmark:hover {
+  background-image: linear-gradient(90deg, #ffffff 0%, #3dffbe 100%);
+}
+
+.nav-link:hover {
+  color: #3dffbe;
+}
+
+.nav-install:hover {
+  background-color: #3dffbe;
+}
+
+/* 主视觉链标沿圆环转动，内层反向旋转让图标保持正向。 */
+@keyframes noir-orbit-cw {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes noir-orbit-ccw {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+.noir-orbit-spin,
+.noir-orbit-upright {
+  animation-duration: 64s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.noir-orbit-spin {
+  transform-origin: 0 0;
+  animation-name: noir-orbit-cw;
+}
+
+.noir-orbit-upright {
+  transform-origin: center;
+  animation-name: noir-orbit-ccw;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .noir-orbit-spin,
+  .noir-orbit-upright {
+    animation: none;
+  }
+}
+
+/* Private DeFi：Public / Private 滑块来回切换，私有态把余额虚化。 */
+.mode-thumb {
+  animation: mode-thumb 4.8s ease-in-out infinite;
+}
+
+.mode-public {
+  animation: mode-public 4.8s ease-in-out infinite;
+}
+
+.mode-private {
+  animation: mode-private 4.8s ease-in-out infinite;
+}
+
+.mode-balance {
+  animation: mode-balance 4.8s ease-in-out infinite;
+}
+
+/* 手和滑块同一节奏。设计稿位置对准 Private，Public 时向左 53px。 */
+.mode-hand {
+  animation: mode-hand-x 4.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.mode-hand-press {
+  animation: mode-hand-press 4.8s ease-in-out infinite;
+}
+
+@keyframes mode-hand-x {
+  0%,
+  38% {
+    transform: translateX(-53px);
+  }
+  50%,
+  88% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-53px);
+  }
+}
+
+@keyframes mode-hand-press {
+  0%,
+  3%,
+  12%,
+  48%,
+  58%,
+  100% {
+    transform: translateY(0);
+  }
+  7%,
+  53% {
+    transform: translateY(4px);
+  }
+}
+
+@keyframes mode-thumb {
+  0%,
+  38% {
+    transform: translateX(0);
+  }
+  50%,
+  88% {
+    transform: translateX(53px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes mode-public {
+  0%,
+  38% {
+    color: #fff;
+  }
+  50%,
+  88% {
+    color: #8b8e93;
+  }
+  100% {
+    color: #fff;
+  }
+}
+
+@keyframes mode-private {
+  0%,
+  38% {
+    color: #8b8e93;
+  }
+  50%,
+  88% {
+    color: #fff;
+  }
+  100% {
+    color: #8b8e93;
+  }
+}
+
+@keyframes mode-balance {
+  0%,
+  38% {
+    filter: blur(0);
+    opacity: 1;
+  }
+  50%,
+  88% {
+    filter: blur(5px);
+    opacity: 0.7;
+  }
+  100% {
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+
+/* Core Responsibilities：悬停时边框亮起。 */
+.duty-card {
+  transition:
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.duty-card:hover {
+  border-color: #3dffbe;
+  box-shadow:
+    0 0 0 1px rgba(61, 255, 190, 0.55),
+    0 0 24px rgba(0, 209, 138, 0.28);
+}
+
+/* How Noir wallet works：连线上的电流从路径起点走向终点。 */
+.flow-spark {
+  stroke-dasharray: 18 82;
+  filter: drop-shadow(0 0 4px var(--spark, #3dffbe));
+  animation: flow-spark 2.4s linear infinite;
+}
+
+@keyframes flow-spark {
+  from {
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mode-thumb,
+  .mode-public,
+  .mode-private,
+  .mode-balance,
+  .mode-hand,
+  .mode-hand-press,
+  .flow-spark {
+    animation: none;
+  }
+
+  .flow-spark,
+  .mobile-flow::after {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* 767 以下的重排页面。桌面仍走 1512 画布。 */
+.mobile-home {
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: #000;
+  color: #fff;
+  font-family: "DM Sans", sans-serif;
+}
+
+.mobile-header {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 50;
+  background: #000;
+  padding-top: env(safe-area-inset-top);
+}
+
+.mobile-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 56px;
+  padding: 0 16px;
+}
+
+.mobile-logo {
+  display: block;
+  width: 32px;
+  height: 32px;
+  flex: none;
+}
+
+.mobile-logo img,
+.mobile-hero-wallet img,
+.mobile-portrait-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mobile-word {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.mobile-install {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 4px;
+  background: #00d18a;
+  color: #000;
+  font-size: 13px;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.mobile-install img {
+  width: 10px;
+  height: 10px;
+}
+
+.mobile-nav {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid #222;
+}
+
+.mobile-nav button {
+  height: 44px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-family: Doto, sans-serif;
+  font-size: 13px;
+  text-transform: capitalize;
+}
+
+.mobile-home main {
+  padding-top: calc(100px + env(safe-area-inset-top));
+}
+
+.mobile-hero,
+.mobile-block,
+.mobile-stats,
+.mobile-transfers-copy,
+.mobile-journey {
+  padding: 28px 20px;
+}
+
+.mobile-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mobile-hero-frame {
+  align-self: stretch;
+}
+
+.mobile-hero h1,
+.mobile-block h2,
+.mobile-transfers h2,
+.mobile-journey h2 {
+  margin: 0;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.mobile-hero h1 {
+  font-size: 32px;
+  text-align: center;
+}
+
+.mobile-hero p,
+.mobile-block p {
+  margin: 14px 0 0;
+  color: #d9d9d9;
+  font-size: 15px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.mobile-cta,
+.mobile-docs {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  padding: 0 18px;
+  border-radius: 4px;
+  font-size: 16px;
+  text-decoration: none;
+}
+
+.mobile-cta {
+  background: #00d18a;
+  color: #000;
+}
+
+.mobile-hero .mobile-cta {
+  display: flex;
+  width: fit-content;
+  margin-top: 22px;
+}
+
+.mobile-hero-frame {
+  position: relative;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.mobile-hero-stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1164px;
+  height: 624px;
+  transform-origin: top left;
+}
+
+.mobile-hero-ring {
+  position: absolute;
+  top: 61px;
+  left: 115px;
+  width: 935px;
+  height: 935px;
+}
+
+.mobile-hero-wallet {
+  position: absolute;
+  top: 196px;
+  left: 392px;
+  width: 380px;
+  height: 428px;
+  overflow: hidden;
+  border: 1px solid #c8ffed;
+  border-radius: 12px;
+}
+
+.mobile-hero-wallet img {
+  height: 132%;
+}
+
+.mobile-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.mobile-stats strong {
+  display: block;
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.mobile-stats span,
+.mobile-stats small {
+  display: block;
+}
+
+.mobile-stats span {
+  margin-top: 4px;
+  font-size: 14px;
+}
+
+.mobile-stats small {
+  margin-top: 2px;
+  color: #999;
+  font-size: 13px;
+}
+
+.mobile-transfers {
+  position: relative;
+  overflow: hidden;
+}
+
+.mobile-dots {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.3;
+}
+
+.mobile-transfers-copy {
+  position: relative;
+  z-index: 1;
+}
+
+.mobile-transfers h2,
+.mobile-block h2,
+.mobile-journey h2 {
+  font-size: 28px;
+}
+
+.mobile-transfers article,
+.mobile-duties li,
+.mobile-tools li,
+.mobile-flow li {
+  border: 1px solid #424242;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.mobile-transfers article {
+  margin-top: 12px;
+  padding: 22px 18px;
+}
+
+.mobile-transfers h3,
+.mobile-flow strong {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.mobile-duties,
+.mobile-tools,
+.mobile-flow {
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mobile-duties li,
+.mobile-tools li {
+  margin-top: 10px;
+  padding: 18px;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.mobile-flow {
+  position: relative;
+}
+
+.mobile-flow::before {
+  content: "";
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 18px;
+  width: 2px;
+  background: rgba(61, 255, 190, 0.35);
+}
+
+.mobile-flow::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 14px;
+  width: 10px;
+  height: 36px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 0 12px #3dffbe;
+  animation: mobile-flow 2.4s linear infinite;
+}
+
+@keyframes mobile-flow {
+  from {
+    top: 0;
+  }
+  to {
+    top: calc(100% - 36px);
+  }
+}
+
+.mobile-flow li {
+  position: relative;
+  margin-top: 12px;
+  margin-left: 36px;
+  padding: 16px;
+}
+
+.mobile-flow span {
+  display: block;
+  margin-top: 4px;
+  color: #d9d9d9;
+  font-size: 14px;
+}
+
+.mobile-tools {
+  display: grid;
+  gap: 10px;
+}
+
+.mobile-journey {
+  text-align: center;
+}
+
+.mobile-journey-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.mobile-journey-actions .mobile-cta,
+.mobile-journey-actions .mobile-docs {
+  margin: 0;
+}
+
+.mobile-docs {
+  border: 1px solid #424242;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.mobile-footer {
+  position: relative;
+  padding: 28px 20px calc(24px + env(safe-area-inset-bottom));
+  text-align: center;
+}
+
+.mobile-portrait {
+  position: relative;
+  height: 220px;
+  margin: 0 -20px 16px;
+  overflow: hidden;
+}
+
+.mobile-portrait-canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.mobile-footer p {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 100;
+}
+
+@media (hover: hover) {
+  .mobile-duties li:hover,
+  .mobile-tools li:hover,
+  .mobile-transfers article:hover {
+    border-color: #3dffbe;
+    box-shadow:
+      0 0 0 1px rgba(61, 255, 190, 0.55),
+      0 0 24px rgba(0, 209, 138, 0.28);
+  }
+}
