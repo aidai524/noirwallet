@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shield $10. Win 1 ZEC. · Noir Wallet</title>
+<meta name="description" content="Move $10 or more into NEAR Confidential with Noir Wallet. Every qualifying Shield is one draw for 1 ZEC. Only one winner.">
+<meta name="theme-color" content="#000000">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Shield $10. Win 1 ZEC.">
+<meta property="og:description" content="Move $10 or more into NEAR Confidential with Noir Wallet. Every qualifying Shield is one draw. Only one winner.">
+<meta property="og:image" content="https://noirwallet.pages.dev/figma/imgNoirLogo1.jpg">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="/figma/imgNoirLogo1.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,900&family=Doto:wght@400;700&display=swap" rel="stylesheet">
+<!--
+  Shield & Win 1 ZEC: campaign landing page for noirwallet.pages.dev.
+  Lives at public/shield-and-win/index.html; Vite copies it to dist/shield-and-win/index.html, served at /shield-and-win/.
+  Self-contained: inline CSS and JS. Fonts and colours match the site; images come from the site's /figma/ folder.
+
+  Left column = the visitor: one main button and, once there is one, their own entry status.
+  Right column = the campaign: prize state, draws so far, odds per draw, time left.
+
+  Wallet: Noir Wallet already injects window.noirwallet ({ isNoirWallet, request }) on every https page.
+  This page calls two wallet methods:
+    wallet_openCampaign      { campaign, screen: 'shield', protocol: 'near-confidential' }
+                             implemented on branch feat/shield-and-win-page-bridge (fork aidai524/noir-wallet), not released yet;
+                             opens the wallet's NEAR Confidential shield flow in a tab; only https://noirwallet.pages.dev may call it;
+                             'claim' rejects with 4200 until the wallet has a claim screen
+    wallet_getCampaignStatus { campaign, interactive }   (proposed, waits for the campaign backend)
+                             -> null | { view: 'needs-permission' } | { view, amount?, received?, number?, reason?, conf? }
+                             view = shielding | verifying | drawing | notwon | noteligible | won | claiming | claimed | endedBeforeDraw
+                             first-party origin only; never returns addresses or balances;
+                             interactive: true may show the wallet's own consent prompt
+  With an older wallet the page still works: it detects the wallet, and Shield Now explains how to open it by hand.
+
+  Campaign numbers: set CONFIG.statsUrl to the public summary endpoint, returning
+    { state: 'live' | 'ended' | 'ended-deadline', drawsSoFar: number, endsAt: ISO string }
+  Until then the counter stays hidden and "Ends in" shows TBC (or CONFIG.endsAt if you fill it in).
+  Analytics: listen for window 'shieldwin:track' events (detail.event).
+  Still TBC: deadline, stats endpoint, entries per wallet, claim window, regions and age limits, full terms.
+-->
+<style>
+  :root{--sub:#bcbcc8;--mute:#8b8e93;--mute-2:#a7a9ad;--green:#00d18a;--mint:#3dffbe;--gold:#ffcc00;--gutter:clamp(16px,4vw,64px)}
+  *,*::before,*::after{box-sizing:border-box}
+  html{background:#000;color-scheme:dark}
+  body{margin:0;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;background:#000;color:#fff;font:400 16px/1.55 'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  h1,h2,p{margin:0}
+  img{display:block}
+  button{font:inherit;color:inherit}
+  :focus-visible{outline:2px solid var(--mint);outline-offset:3px}
+  .doto{font-family:'Doto',ui-monospace,monospace;font-weight:400}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  [hidden]{display:none!important}
+
+  .top{display:flex;align-items:center;justify-content:space-between;height:72px;padding:0 var(--gutter)}
+  .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff;font-size:20px;font-weight:500}
+  .brand img{width:28px;height:28px;border-radius:50%}
+  .rules-btn{height:40px;padding:0 16px;border-radius:4px;border:1px solid #3a3a3a;background:#000;font-size:15px;font-weight:500;cursor:pointer}
+  .rules-btn:hover{border-color:#666}
+
+  main{flex:1;padding:0 var(--gutter)}
+  /* the stage: same card shape as the site's hero */
+  .stage{position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(380px,.95fr);gap:clamp(32px,5vw,80px);align-items:center;max-width:1360px;margin:0 auto;padding:clamp(36px,5vw,80px);border-radius:30px;background:linear-gradient(155deg,#1c1c1c 0%,#141414 55%,#0e0e10 100%);border:1px solid #262626;overflow:hidden}
+  .stage::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(circle,rgba(61,255,190,.32) 1.4px,transparent 2px) 0 0/18px 18px;-webkit-mask-image:radial-gradient(60% 75% at 85% 100%,#000 0%,rgba(0,0,0,.4) 45%,transparent 75%);mask-image:radial-gradient(60% 75% at 85% 100%,#000 0%,rgba(0,0,0,.4) 45%,transparent 75%)}
+
+  .eyebrow{font-size:18px;line-height:1;color:var(--mint);letter-spacing:.06em;text-transform:uppercase}
+  h1{font-size:clamp(48px,min(6vw,10vh),96px);line-height:1.02;font-weight:600;letter-spacing:-.035em;margin-top:clamp(18px,3vh,28px)}
+  h1 .hl{color:var(--mint)}
+  .sub{font-size:clamp(17px,1.4vw,21px);line-height:1.55;color:var(--sub);max-width:31em;margin-top:clamp(18px,3vh,28px)}
+  .actions{display:flex;gap:14px;flex-wrap:wrap;margin-top:clamp(24px,4vh,40px);min-height:56px}
+  .actions.wait{visibility:hidden}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:56px;padding:0 28px;border-radius:4px;border:1px solid transparent;font:500 17px/1 'DM Sans',system-ui,sans-serif;text-decoration:none;cursor:pointer;transition:background .15s,border-color .15s}
+  .btn svg{width:18px;height:18px}
+  .btn.primary{background:var(--green);color:#000}
+  .btn.primary:hover{background:#1ee3a0}
+  .btn.ghost{background:#0b0b0b;color:#fff;border-color:#3a3a3a}
+  .btn.ghost:hover{border-color:#6a6a6a}
+  .hint{font-size:14px;line-height:1.5;color:var(--mute);margin-top:12px;max-width:36em}
+  .hint.warn{color:#ffc04d}
+
+  .entry{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:8px 12px;max-width:520px;margin-top:22px;padding:14px 16px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid #2c2c2c}
+  .entry.swap{animation:in .3s ease-out}
+  @keyframes in{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .entry-k{font-size:13px;color:var(--mute)}
+  .chip{justify-self:start;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;background:rgba(255,255,255,.07);color:var(--mute-2)}
+  .chip.live{color:var(--mint);background:rgba(0,209,138,.12)}
+  .chip.warn{color:#ffc04d;background:rgba(255,161,0,.12)}
+  .chip.gold{color:var(--gold);background:rgba(255,204,0,.12)}
+  .entry p{grid-column:1/-1;font-size:15px;line-height:1.5;color:var(--sub)}
+  .entry p b{color:#fff;font-weight:500}
+  .entry.is-won,.entry.is-claiming,.entry.is-claimed{border-color:rgba(255,204,0,.4);background:radial-gradient(120% 140% at 0% 0%,rgba(255,161,0,.14),transparent 60%),rgba(255,255,255,.03)}
+  .entry .dots{grid-column:1/-1;display:flex;gap:6px}
+  .entry .dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.14);animation:run 1.4s infinite;animation-delay:calc(var(--k) * 120ms)}
+  @keyframes run{40%{background:var(--mint);box-shadow:0 0 6px var(--mint)}}
+
+  .assure{display:flex;align-items:center;gap:10px;margin-top:clamp(22px,3.5vh,34px);font-size:15px;color:var(--mute-2)}
+  .assure svg{width:20px;height:20px;color:var(--mint);flex:none}
+
+  /* the board: campaign progress */
+  .board{position:relative;padding:clamp(22px,2.4vw,32px);border-radius:24px;background:linear-gradient(180deg,rgba(20,22,30,.94),rgba(13,14,20,.97));border:1px solid rgba(61,255,190,.3);box-shadow:0 0 0 4px rgba(61,255,190,.04),0 30px 80px rgba(0,0,0,.5)}
+  .board-top{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:15px;color:var(--mute-2)}
+  .pill{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px;border-radius:17px;font-size:15px;font-weight:500;color:var(--mint);background:rgba(0,209,138,.1);border:1px solid rgba(61,255,190,.35);white-space:nowrap}
+  .pill i{width:8px;height:8px;border-radius:50%;background:var(--mint);box-shadow:0 0 8px var(--mint)}
+  .pill.ended{color:var(--mute-2);background:rgba(255,255,255,.05);border-color:#3a3a3a}
+  .pill.ended i{background:#666;box-shadow:none}
+  .prize{display:flex;align-items:center;gap:clamp(14px,1.6vw,22px);margin-top:clamp(20px,3vh,30px);padding-bottom:clamp(20px,3vh,28px);border-bottom:1px solid #262630}
+  .prize img{width:clamp(64px,6.5vw,96px);height:auto;aspect-ratio:1}
+  .prize b{display:block;font-size:clamp(44px,5vw,72px);line-height:1;font-weight:600;letter-spacing:-.02em}
+  .prize span{display:block;font-size:clamp(15px,1.2vw,18px);color:var(--sub);margin-top:10px}
+  .draws{margin-top:clamp(18px,2.6vh,26px)}
+  .draws .k{font-size:15px;color:var(--mute-2)}
+  .draws .big{display:block;font-size:clamp(56px,min(6.4vw,11vh),104px);line-height:1;margin-top:10px;font-weight:700;color:var(--mint);text-shadow:0 0 26px rgba(61,255,190,.35)}
+  .tiles{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:clamp(16px,2.6vh,24px)}
+  .tile{padding:16px 18px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid #2a2a33}
+  .tile span{display:block;font-size:14px;color:var(--mute-2)}
+  .tile b{display:block;font-size:clamp(24px,2.3vw,36px);line-height:1.1;margin-top:8px;font-weight:700;color:#fff;white-space:nowrap}
+  .indep{font-size:13px;line-height:1.5;color:var(--mute);margin-top:14px}
+
+  .foot{text-align:center;padding:22px 16px 26px;font-size:13px;line-height:1.6;color:var(--mute)}
+  .foot p + p{margin-top:4px;color:#5d5d66}
+  .textlink{background:none;border:0;padding:0;color:var(--sub);text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(255,255,255,.3);cursor:pointer}
+  .textlink:hover{color:#fff}
+
+  dialog.rules{width:min(560px,calc(100% - 32px));max-height:min(82vh,760px);padding:0;border:1px solid #333;border-radius:20px;background:#141414;color:#fff;overflow:auto}
+  dialog.rules::backdrop{background:rgba(0,0,0,.74)}
+  .rules-head{position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:20px 22px 12px;background:#141414}
+  .rules-head h2{font-size:20px;font-weight:600}
+  .x{width:40px;height:40px;display:grid;place-items:center;border-radius:8px;border:1px solid #333;background:none;cursor:pointer}
+  .x svg{width:18px;height:18px}
+  .rules ul{list-style:none;margin:0;padding:0 22px}
+  .rules li{position:relative;padding:12px 0 12px 20px;border-top:1px solid #232323;font-size:15px;line-height:1.55;color:var(--sub)}
+  .rules li::before{content:"";position:absolute;left:2px;top:21px;width:6px;height:6px;border-radius:50%;background:var(--mint)}
+  .rules li b{color:#fff;font-weight:500}
+  .tbc{display:inline-block;font-size:12px;font-weight:600;color:var(--gold);border:1px solid rgba(255,204,0,.4);border-radius:4px;padding:0 5px;line-height:18px;vertical-align:1px}
+  .rules-foot{padding:12px 22px 22px;font-size:13px;color:var(--mute);border-top:1px solid #232323}
+
+  @media (max-width:1040px){
+    .stage{grid-template-columns:minmax(0,1fr)}
+    .board{max-width:560px}
+  }
+  @media (max-width:760px){
+    .top{height:64px}
+    main{padding:0 12px}
+    .stage{padding:28px 18px 22px;border-radius:24px;gap:28px}
+    .eyebrow{font-size:15px}
+    h1{font-size:clamp(44px,13vw,60px)}
+    .actions{flex-direction:column}
+    .btn{width:100%}
+    .board{padding:20px 18px}
+    .pill{font-size:14px;height:32px;padding:0 12px}
+    .board-top .muted{display:none}
+    .tile{padding:14px}
+  }
+  @media (max-width:440px){
+    .tiles{grid-template-columns:minmax(0,1fr)}
+    .tile{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+    .tile b{margin-top:0;font-size:26px}
+  }
+  @media (prefers-reduced-motion:reduce){ .entry .dots i{animation:none} .entry.swap{animation:none} }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/"><img src="/figma/imgNoirLogo1.jpg" alt="">Noir Wallet</a>
+  <button class="rules-btn" type="button" data-open-rules>Rules</button>
+</header>
+
+<main>
+  <section class="stage" aria-labelledby="title">
+    <div class="lead">
+      <p class="eyebrow doto">Demo Day · Shield &amp; Win</p>
+      <h1 id="title">Shield $10.<br>Win <span class="hl">1&nbsp;ZEC</span>.</h1>
+      <p class="sub">Move $10 or more into NEAR Confidential with Noir Wallet. Every qualifying Shield is one draw. Only one winner.</p>
+      <div class="actions js-actions wait"></div>
+      <p class="hint js-hint" hidden></p>
+      <div class="entry js-entry" hidden aria-label="Your entry"></div>
+      <p class="sr" aria-live="polite" id="announce"></p>
+      <p class="assure"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 5 6v5.2c0 4.3 2.9 8 7 9.8 4.1-1.8 7-5.5 7-9.8V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg>Shielding doesn’t spend your funds. They stay yours, just private.</p>
+    </div>
+
+    <aside class="board" aria-label="Campaign progress">
+      <div class="board-top"><span class="pill js-pill"><i></i><span>Live · Prize unclaimed</span></span><span class="muted">Only one winner</span></div>
+      <div class="prize"><img src="/figma/imgGroup1948762978.svg" alt=""><div><b>1 ZEC</b><span>Sent to your Zcash shielded address</span></div></div>
+      <div class="draws js-draws" hidden><span class="k">Draws so far</span><span class="big doto js-draws-n">0</span></div>
+      <div class="tiles">
+        <div class="tile"><span>Odds per draw</span><b class="doto">1 / 4444</b></div>
+        <div class="tile"><span class="js-ends-k">Ends in</span><b class="doto js-ends">TBC</b></div>
+      </div>
+      <p class="indep">Every draw is independent. More draws don’t make the next one more likely to win.</p>
+    </aside>
+  </section>
+</main>
+
+<footer class="foot">
+  <p>One prize of 1&nbsp;ZEC. The campaign ends when it’s won or at the deadline. Shielding fees may apply. <button class="textlink" type="button" data-open-rules>Rules</button></p>
+  <p>© 2026 Noir Privacy Terminal. All Rights Reserved.</p>
+</footer>
+
+<dialog class="rules" id="rules" aria-labelledby="rules-title">
+  <div class="rules-head"><h2 id="rules-title">Shield &amp; Win rules</h2><button class="x" type="button" data-close-rules aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <ul>
+    <li>Shield <b>$10 or more</b> into <b>NEAR Confidential</b> from your Public or Private account in Noir Wallet. Use the latest version of Noir Wallet.</li>
+    <li>We count the USD value credited after network, bridge and protocol fees. Smaller shields can’t be added together.</li>
+    <li>Each eligible shield gets one automatic draw at <b>1 in 4,444</b> (about 0.0225%). That doesn’t mean someone wins every 4,444 draws.</li>
+    <li>There is <b>one prize of 1 ZEC</b>. The campaign ends the moment it’s won, or at the deadline <span class="tbc">TBC</span>. It may end with no winner.</li>
+    <li>Zcash Shield, Railgun, Privacy Pool, ZAMA, moving funds out of or within NEAR Confidential, transfers, swaps, and failed or refunded shields don’t count.</li>
+    <li>The draw runs once per shield on our server. Refreshing, closing or reinstalling never draws again.</li>
+    <li>The winner claims to a Zcash shielded address in Noir Wallet. We pay the network fee, so the full 1 ZEC arrives. Claim window <span class="tbc">TBC</span>.</li>
+    <li>We never ask for your seed phrase or keys, and never publish your balances, addresses or the path of your funds. “Draws so far” is a total count only.</li>
+    <li>Entries per wallet, regions and age limits <span class="tbc">TBC</span>. Fees are shown before you sign. Winning isn’t guaranteed.</li>
+  </ul>
+  <p class="rules-foot">Full terms and eligibility restrictions apply <span class="tbc">TBC</span>.</p>
+</dialog>
+
+<script>
+window.ShieldWin = (function () {
+  'use strict';
+  var CONFIG = {
+    campaign: 'shield-and-win-1',
+    state: 'live',     // used until the stats endpoint answers: 'live' | 'ended' | 'ended-deadline'
+    endsAt: null,      // ISO time of the deadline, e.g. '2026-11-24T18:00:00Z' (TBC)
+    statsUrl: null,    // public summary endpoint (TBC)
+    cws: 'https://chromewebstore.google.com/detail/mfoghjbpfanobmnoemoepenjjcmfpmdn?utm_source=shield_and_win'
+  };
+  function $(s) { return document.querySelector(s); }
+  var actions = $('.js-actions'), hintEl = $('.js-hint'), entryEl = $('.js-entry'), announce = $('#announce');
+  var phone = window.innerWidth < 760 || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  var stats = { state: CONFIG.state, drawsSoFar: null, endsAt: CONFIG.endsAt };
+  var nw = null, entry = null, perm = 'unknown', notice = '', lastEntryKey = null, pollTimer = null;
+  var DL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>';
+
+  function num(n) { return Number(n).toLocaleString('en-US'); }
+  function num2(n) { return Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function track(event) { try { window.dispatchEvent(new CustomEvent('shieldwin:track', { detail: { event: event, campaign: CONFIG.campaign } })); } catch (e) { /* old browsers */ } }
+  function button(act, label, kind) { return '<button type="button" class="btn ' + kind + '" data-act="' + act + '">' + label + '</button>'; }
+  function link(href, label, kind, act) { return '<a class="btn ' + kind + '" href="' + href + '"' + (act ? ' data-act="' + act + '" target="_blank" rel="noopener"' : '') + '>' + label + '</a>'; }
+
+  /* ---------- the campaign board ---------- */
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function countdown(ms) {
+    if (ms <= 0) return '00:00:00';
+    var s = Math.floor(ms / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
+    return (d ? d + 'd ' : '') + pad(h) + ':' + pad(m) + ':' + pad(s % 60);
+  }
+  function renderBoard() {
+    var live = stats.state === 'live', pill = $('.js-pill');
+    pill.classList.toggle('ended', !live);
+    pill.querySelector('span').textContent = live ? 'Live · Prize unclaimed' : stats.state === 'ended' ? 'Ended · Prize won' : 'Ended · No winner';
+    var hasDraws = typeof stats.drawsSoFar === 'number';
+    $('.js-draws').hidden = !hasDraws;
+    if (hasDraws) $('.js-draws-n').textContent = num(stats.drawsSoFar);
+    tick();
+  }
+  function tick() {
+    var live = stats.state === 'live', k = $('.js-ends-k'), v = $('.js-ends');
+    if (!live) { k.textContent = 'Status'; v.textContent = 'Ended'; return; }
+    k.textContent = 'Ends in';
+    v.textContent = stats.endsAt ? countdown(new Date(stats.endsAt).getTime() - Date.now()) : 'TBC';
+  }
+  function refreshStats() {
+    if (!CONFIG.statsUrl) return;
+    fetch(CONFIG.statsUrl, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
+      if (j && j.state) stats.state = j.state;
+      if (j && typeof j.drawsSoFar === 'number') stats.drawsSoFar = j.drawsSoFar;
+      if (j && j.endsAt) stats.endsAt = j.endsAt;
+      render();
+    }).catch(function () { /* keep the last numbers */ });
+  }
+
+  /* ---------- the visitor: main button and own entry ---------- */
+  var ENTRY = {
+    none: ['Not entered yet', '', function () { return 'Shield $10 or more to enter.'; }],
+    shielding: ['Shielding', 'live', function (d) { return 'Your <b>' + num2(d.amount || 0) + ' USDT</b> is on its way to NEAR Confidential. Usually about 10 minutes.'; }, true],
+    verifying: ['Verifying', 'live', function () { return 'Checking that at least $10 landed in NEAR Confidential.'; }, true],
+    drawing: ['Drawing', 'live', function () { return 'Picking your number from 1 to 4,444.'; }, true],
+    notwon: ['Not a winner', '', function (d) { return 'Your number was <b>' + num(d.number || 0) + '</b>. Your ' + num2(d.received || 0) + ' USDT is now private in NEAR Confidential.'; }],
+    noteligible: ['Not entered', 'warn', function (d) { return d.reason === 'dest' ? 'Only shields into NEAR Confidential count.' : '<b>$' + num2(d.received || 0) + '</b> landed after fees. Entries need $10 or more.'; }],
+    won: ['You won', 'gold', function () { return 'Your number was <b>1</b>. Claim your 1 ZEC in Noir Wallet; we pay the network fee.'; }],
+    claiming: ['Claiming', 'gold', function (d) { return 'Sending 1 ZEC to your Zcash shielded address. Confirmations ' + (d.conf || 0) + ' of 10.'; }, true],
+    claimed: ['Claimed', 'gold', function () { return '<b>1 ZEC</b> is in your Zcash shielded balance. Thank you for taking part.'; }],
+    endedBeforeDraw: ['Ended', '', function () { return 'The prize was won before your entry was drawn. Your shield still completed.'; }]
+  };
+  function renderEntry() {
+    var v = entry && entry.view;
+    if (phone || (!v && perm !== 'granted') || (v && !ENTRY[v])) { entryEl.hidden = true; return; }
+    var key = v || 'none', e = ENTRY[key], d = entry || {};
+    var dots = ''; if (e[3]) { dots = '<span class="dots" aria-hidden="true">'; for (var i = 0; i < 8; i++) dots += '<i style="--k:' + i + '"></i>'; dots += '</span>'; }
+    entryEl.hidden = false;
+    entryEl.className = 'entry js-entry is-' + key + (key !== lastEntryKey && lastEntryKey !== null ? ' swap' : '');
+    entryEl.innerHTML = '<span class="entry-k">Your entry</span><span class="chip ' + e[1] + '">' + e[0] + '</span><p>' + e[2](d) + '</p>' + dots;
+    if (key !== lastEntryKey && lastEntryKey !== null) announce.textContent = e[0] + '. ' + entryEl.querySelector('p').textContent;
+    lastEntryKey = key;
+  }
+  function renderActions() {
+    var v = entry && entry.view, live = stats.state === 'live', html = '', hint = notice, warn = !!notice;
+    if (phone) {
+      html = navigator.share ? button('share', 'Send link to your computer', 'primary') : button('copy', 'Copy link', 'primary');
+      hint = 'Noir Wallet runs in desktop Chrome. Open this page on your computer to take part.';
+    } else if (v === 'won') {
+      html = button('claim', 'Claim in Noir Wallet', 'primary');
+    } else if (v === 'claiming' || v === 'claimed') {
+      html = '';
+    } else if (!live) {
+      html = link('/', 'Explore Noir Wallet', 'ghost');
+      hint = hint || (stats.state === 'ended' ? 'The 1 ZEC prize has been won. Thank you for participating!' : 'No one drew the winning number before the deadline. Thank you for participating!');
+    } else if (!nw) {
+      html = link(CONFIG.cws, DL + 'Install Wallet', 'primary', 'install');
+      hint = hint || 'Installed it just now? Refresh this page.';
+    } else {
+      var busy = v === 'shielding' || v === 'verifying' || v === 'drawing';
+      html = busy ? button('shield', 'Open Noir Wallet', 'ghost') : button('shield', 'Shield Now', 'primary');
+      if (perm === 'needed') { html += button('connect', 'Connect Wallet', 'ghost'); hint = hint || 'Connect to see your entry and result on this page.'; }
+      else if (!v || v === 'noteligible') hint = hint || 'Noir Wallet opens with NEAR Confidential selected. We count what lands after fees.';
+    }
+    actions.innerHTML = html;
+    actions.classList.remove('wait');
+    hintEl.textContent = hint || '';
+    hintEl.hidden = !hint;
+    hintEl.classList.toggle('warn', warn);
+  }
+  function render() { renderBoard(); renderActions(); renderEntry(); }
+
+  /* ---------- talking to Noir Wallet ---------- */
+  function detect() {
+    var w = window.noirwallet;
+    if (nw || !w || !w.isNoirWallet || typeof w.request !== 'function') return;
+    nw = w; render(); refreshEntry(false);
+  }
+  function refreshEntry(interactive) {
+    if (!nw || (perm === 'unsupported' && !interactive)) return;
+    Promise.resolve(nw.request({ method: 'wallet_getCampaignStatus', params: { campaign: CONFIG.campaign, interactive: !!interactive } })).then(function (r) {
+      if (r && r.view === 'needs-permission') { perm = 'needed'; entry = null; }
+      else { perm = 'granted'; entry = r && r.view ? r : null; }
+      render(); schedule();
+    }, function (err) {
+      if (err && err.code === 4001) return;          // the visitor said no in the wallet
+      if (perm === 'unknown') perm = 'unsupported';   // this wallet version doesn't have the method yet
+      render();
+    });
+  }
+  function schedule() {
+    clearTimeout(pollTimer);
+    if (perm !== 'granted') return;
+    var v = entry && entry.view, active = v === 'shielding' || v === 'verifying' || v === 'drawing' || v === 'claiming';
+    pollTimer = setTimeout(function () { if (!document.hidden) refreshEntry(false); else schedule(); }, active ? 3000 : 15000);
+  }
+  function openWallet(screen) {
+    track(screen === 'claim' ? 'campaign_claim_click' : 'campaign_shield_click');
+    notice = ''; render();
+    if (!nw) return;
+    Promise.resolve(nw.request({ method: 'wallet_openCampaign', params: { campaign: CONFIG.campaign, screen: screen, protocol: 'near-confidential' } })).then(function () {
+      setTimeout(function () { refreshEntry(false); }, 1200);
+    }, function (err) {
+      if (err && err.code === 4001) return;
+      notice = screen === 'claim'
+        ? 'Open Noir Wallet from your Chrome toolbar to claim your 1 ZEC.'
+        : 'This version of Noir Wallet can’t be opened from this page yet. Open it from your Chrome toolbar and tap Shield.';
+      render();
+    });
+  }
+
+  actions.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-act]'); if (!b) return;
+    var a = b.getAttribute('data-act');
+    if (a === 'shield' || a === 'claim') openWallet(a);
+    else if (a === 'connect') { track('campaign_connect_click'); refreshEntry(true); }
+    else if (a === 'install') track('campaign_install_click');
+    else if (a === 'share') { track('campaign_link_share'); navigator.share({ title: document.title, url: location.href }).catch(function () { /* sheet closed */ }); }
+    else if (a === 'copy') {
+      var done = function () { b.textContent = 'Link copied'; };
+      if (navigator.clipboard) navigator.clipboard.writeText(location.href).then(done, done); else done();
+    }
+  });
+
+  var dlg = document.getElementById('rules');
+  Array.prototype.forEach.call(document.querySelectorAll('[data-open-rules]'), function (b) {
+    b.addEventListener('click', function () { dlg.showModal(); track('campaign_rules_open'); });
+  });
+  dlg.querySelector('[data-close-rules]').addEventListener('click', function () { dlg.close(); });
+  dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
+
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) { refreshEntry(false); refreshStats(); } });
+  setInterval(tick, 1000);
+  setInterval(function () { if (!document.hidden) refreshStats(); }, 15000);
+
+  // Noir Wallet injects window.noirwallet at document_start; 'noirwallet#initialized' covers late injection.
+  detect();
+  window.addEventListener('noirwallet#initialized', detect);
+  renderBoard();
+  if (nw || phone) render(); else setTimeout(function () { renderActions(); renderEntry(); }, 400);
+  refreshStats();
+  track('campaign_view');
+
+  return {
+    config: CONFIG,
+    setStats: function (patch) { for (var k in patch) stats[k] = patch[k]; render(); },
+    refresh: function () { refreshEntry(false); refreshStats(); }
+  };
+})();
+</script>
+</body>
+</html>
