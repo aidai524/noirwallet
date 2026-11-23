@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Shield $10. Win 1 ZEC. · Noir Wallet</title>
-<meta name="description" content="Move $10 or more into NEAR Confidential with Noir Wallet. Every qualifying Shield is one draw for 1 ZEC. Only one winner.">
+<title>Go Private, Win 1 ZEC · Noir Wallet</title>
+<meta name="description" content="Try a private transfer of $10 or more with Noir Wallet and get an instant draw for 1 ZEC. First win, first get.">
 <meta name="theme-color" content="#000000">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Shield $10. Win 1 ZEC.">
-<meta property="og:description" content="Move $10 or more into NEAR Confidential with Noir Wallet. Every qualifying Shield is one draw. Only one winner.">
+<meta property="og:title" content="Go Private, Win 1 ZEC">
+<meta property="og:description" content="Try a private transfer (min $10) with Noir Wallet and get an instant draw. First win, first get!">
 <meta property="og:image" content="https://noirwallet.pages.dev/figma/imgNoirLogo1.jpg">
 <meta name="twitter:card" content="summary">
 <link rel="icon" href="/figma/imgNoirLogo1.jpg">
@@ -16,7 +16,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,900&family=Doto:wght@400;700&display=swap" rel="stylesheet">
 <!--
-  Shield & Win 1 ZEC: campaign landing page for noirwallet.pages.dev.
+  Go Private, Win 1 ZEC (internal name and URL: Shield & Win, shield-and-win): campaign landing page for noirwallet.pages.dev.
+  Public copy follows the on-site banner: "Go Private, Win 1 ZEC", "Try a private transfer (min $10) and get an instant draw".
   Lives at public/shield-and-win/index.html; Vite copies it to dist/shield-and-win/index.html, served at /shield-and-win/.
   Self-contained: inline CSS and JS. Fonts and colours match the site; images come from the site's /figma/ folder.
 
@@ -34,7 +35,7 @@
                              view = shielding | verifying | drawing | notwon | noteligible | won | claiming | claimed | endedBeforeDraw
                              first-party origin only; never returns addresses or balances;
                              interactive: true may show the wallet's own consent prompt
-  With an older wallet the page still works: it detects the wallet, and Shield Now explains how to open it by hand.
+  With an older wallet the page still works: it detects the wallet, and the main button explains how to open it by hand.
 
   Campaign numbers: set CONFIG.statsUrl to the public summary endpoint, returning
     { state: 'live' | 'ended' | 'ended-deadline', drawsSoFar: number, endsAt: ISO string }
@@ -171,14 +172,14 @@
 <main>
   <section class="stage" aria-labelledby="title">
     <div class="lead">
-      <p class="eyebrow doto">Demo Day · Shield &amp; Win</p>
-      <h1 id="title">Shield $10.<br>Win <span class="hl">1&nbsp;ZEC</span>.</h1>
-      <p class="sub">Move $10 or more into NEAR Confidential with Noir Wallet. Every qualifying Shield is one draw. Only one winner.</p>
+      <p class="eyebrow doto">Demo Day</p>
+      <h1 id="title">Go Private,<br>Win <span class="hl">1&nbsp;ZEC</span></h1>
+      <p class="sub">Try a private transfer (min $10) and get an instant draw. First win, first get!</p>
       <div class="actions js-actions wait"></div>
       <p class="hint js-hint" hidden></p>
       <div class="entry js-entry" hidden aria-label="Your entry"></div>
       <p class="sr" aria-live="polite" id="announce"></p>
-      <p class="assure"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 5 6v5.2c0 4.3 2.9 8 7 9.8 4.1-1.8 7-5.5 7-9.8V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg>Shielding doesn’t spend your funds. They stay yours, just private.</p>
+      <p class="assure"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 5 6v5.2c0 4.3 2.9 8 7 9.8 4.1-1.8 7-5.5 7-9.8V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg>Your private transfer lands in your own private balance. The money stays yours.</p>
     </div>
 
     <aside class="board" aria-label="Campaign progress">
@@ -195,19 +196,19 @@
 </main>
 
 <footer class="foot">
-  <p>One prize of 1&nbsp;ZEC. The campaign ends when it’s won or at the deadline. Shielding fees may apply. <button class="textlink" type="button" data-open-rules>Rules</button></p>
+  <p>One prize of 1&nbsp;ZEC. The campaign ends when it’s won or at the deadline. Fees may apply. <button class="textlink" type="button" data-open-rules>Rules</button></p>
   <p>© 2026 Noir Privacy Terminal. All Rights Reserved.</p>
 </footer>
 
 <dialog class="rules" id="rules" aria-labelledby="rules-title">
-  <div class="rules-head"><h2 id="rules-title">Shield &amp; Win rules</h2><button class="x" type="button" data-close-rules aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="rules-head"><h2 id="rules-title">Rules</h2><button class="x" type="button" data-close-rules aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
   <ul>
-    <li>Shield <b>$10 or more</b> into <b>NEAR Confidential</b> from your Public or Private account in Noir Wallet. Use the latest version of Noir Wallet.</li>
-    <li>We count the USD value credited after network, bridge and protocol fees. Smaller shields can’t be added together.</li>
-    <li>Each eligible shield gets one automatic draw at <b>1 in 4,444</b> (about 0.0225%). That doesn’t mean someone wins every 4,444 draws.</li>
+    <li><b>How to join:</b> install Noir Wallet, create or import a wallet, then make a private transfer of <b>$10 or more</b> into <b>NEAR Confidential</b> from your Public or Private account (in the wallet: Shield → NEAR Confidential). Use the latest version of Noir Wallet.</li>
+    <li>We count the USD value credited after network, bridge and protocol fees. Smaller transfers can’t be added together.</li>
+    <li>Each eligible transfer gets one automatic draw as soon as it’s credited, at <b>1 in 4,444</b> (about 0.0225%). That doesn’t mean someone wins every 4,444 draws.</li>
     <li>There is <b>one prize of 1 ZEC</b>. The campaign ends the moment it’s won, or at the deadline <span class="tbc">TBC</span>. It may end with no winner.</li>
-    <li>Zcash Shield, Railgun, Privacy Pool, ZAMA, moving funds out of or within NEAR Confidential, transfers, swaps, and failed or refunded shields don’t count.</li>
-    <li>The draw runs once per shield on our server. Refreshing, closing or reinstalling never draws again.</li>
+    <li>Only transfers into NEAR Confidential count. Zcash Shield, Railgun, Privacy Pool, ZAMA, moving funds out of or within NEAR Confidential, sending to another address, swaps, and failed or refunded transfers don’t count.</li>
+    <li>The draw runs once per transfer on our server. Refreshing, closing or reinstalling never draws again.</li>
     <li>The winner claims to a Zcash shielded address in Noir Wallet. We pay the network fee, so the full 1 ZEC arrives. Claim window <span class="tbc">TBC</span>.</li>
     <li>We never ask for your seed phrase or keys, and never publish your balances, addresses or the path of your funds. “Draws so far” is a total count only.</li>
     <li>Entries per wallet, regions and age limits <span class="tbc">TBC</span>. Fees are shown before you sign. Winning isn’t guaranteed.</li>
@@ -272,20 +273,20 @@ window.ShieldWin = (function () {
 
   /* ---------- the visitor: main button and own entry ---------- */
   var ENTRY = {
-    none: ['Not entered yet', '', function () { return 'Shield $10 or more to enter.'; }],
-    shielding: ['Shielding', 'live', function (d) { return 'Your <b>' + num2(d.amount || 0) + ' USDT</b> is on its way to NEAR Confidential. Usually about 10 minutes.'; }, true],
+    none: ['Not entered yet', '', function () { return 'Make a private transfer of $10 or more to enter.'; }],
+    shielding: ['Transferring', 'live', function (d) { return 'Your <b>' + num2(d.amount || 0) + ' USDT</b> is on its way to NEAR Confidential. Usually about 10 minutes.'; }, true],
     verifying: ['Verifying', 'live', function () { return 'Checking that at least $10 landed in NEAR Confidential.'; }, true],
     drawing: ['Drawing', 'live', function () { return 'Picking your number from 1 to 4,444.'; }, true],
     notwon: ['Not a winner', '', function (d) { return 'Your number was <b>' + num(d.number || 0) + '</b>. Your ' + num2(d.received || 0) + ' USDT is now private in NEAR Confidential.'; }],
-    noteligible: ['Not entered', 'warn', function (d) { return d.reason === 'dest' ? 'Only shields into NEAR Confidential count.' : '<b>$' + num2(d.received || 0) + '</b> landed after fees. Entries need $10 or more.'; }],
+    noteligible: ['Not entered', 'warn', function (d) { return d.reason === 'dest' ? 'Only private transfers into NEAR Confidential count.' : '<b>$' + num2(d.received || 0) + '</b> landed after fees. Entries need $10 or more.'; }],
     won: ['You won', 'gold', function () { return 'Your number was <b>1</b>. Claim your 1 ZEC in Noir Wallet; we pay the network fee.'; }],
     claiming: ['Claiming', 'gold', function (d) { return 'Sending 1 ZEC to your Zcash shielded address. Confirmations ' + (d.conf || 0) + ' of 10.'; }, true],
     claimed: ['Claimed', 'gold', function () { return '<b>1 ZEC</b> is in your Zcash shielded balance. Thank you for taking part.'; }],
-    endedBeforeDraw: ['Ended', '', function () { return 'The prize was won before your entry was drawn. Your shield still completed.'; }]
+    endedBeforeDraw: ['Ended', '', function () { return 'The prize was won before your entry was drawn. Your transfer still completed.'; }]
   };
   function renderEntry() {
     var v = entry && entry.view;
-    if (phone || (!v && perm !== 'granted') || (v && !ENTRY[v])) { entryEl.hidden = true; return; }
+    if (phone || (!v && (perm !== 'granted' || stats.state !== 'live')) || (v && !ENTRY[v])) { entryEl.hidden = true; return; }
     var key = v || 'none', e = ENTRY[key], d = entry || {};
     var dots = ''; if (e[3]) { dots = '<span class="dots" aria-hidden="true">'; for (var i = 0; i < 8; i++) dots += '<i style="--k:' + i + '"></i>'; dots += '</span>'; }
     entryEl.hidden = false;
@@ -307,13 +308,15 @@ window.ShieldWin = (function () {
       html = link('/', 'Explore Noir Wallet', 'ghost');
       hint = hint || (stats.state === 'ended' ? 'The 1 ZEC prize has been won. Thank you for participating!' : 'No one drew the winning number before the deadline. Thank you for participating!');
     } else if (!nw) {
-      html = link(CONFIG.cws, DL + 'Install Wallet', 'primary', 'install');
+      html = link(CONFIG.cws, DL + 'Install Noir Wallet', 'primary', 'install');
       hint = hint || 'Installed it just now? Refresh this page.';
+    } else if (v === 'notwon') {
+      html = '';                 // the result is in the entry card; no button inviting another transfer
     } else {
       var busy = v === 'shielding' || v === 'verifying' || v === 'drawing';
-      html = busy ? button('shield', 'Open Noir Wallet', 'ghost') : button('shield', 'Shield Now', 'primary');
+      html = busy ? button('shield', 'Open Noir Wallet', 'ghost') : button('shield', 'Try a private transfer', 'primary');
       if (perm === 'needed') { html += button('connect', 'Connect Wallet', 'ghost'); hint = hint || 'Connect to see your entry and result on this page.'; }
-      else if (!v || v === 'noteligible') hint = hint || 'Noir Wallet opens with NEAR Confidential selected. We count what lands after fees.';
+      else if (!v || v === 'noteligible') hint = hint || 'Only transfers into NEAR Confidential count. At least $10 must land after fees.';
     }
     actions.innerHTML = html;
     actions.classList.remove('wait');
@@ -357,7 +360,7 @@ window.ShieldWin = (function () {
       if (err && err.code === 4001) return;
       notice = screen === 'claim'
         ? 'Open Noir Wallet from your Chrome toolbar to claim your 1 ZEC.'
-        : 'This version of Noir Wallet can’t be opened from this page yet. Open it from your Chrome toolbar and tap Shield.';
+        : 'Noir Wallet can’t be opened from this page yet. Open it from your Chrome toolbar, go to Shield and choose NEAR Confidential.';
       render();
     });
   }
