@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* The campaign page is a standalone static file; keep its words out of the site's utility scan. */
+@source not "../public/shield-and-win";
+
 html,
 body,
 #root {
