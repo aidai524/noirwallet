@@ -1,94 +1,101 @@
-/** 新版官网的文案与素材。文案沿用现有官网，钱包里的数字是官网 mock 上的演示值。 */
+/** 新版官网的文案与素材。文案沿用设计稿，钱包截图是设计稿导出的图。 */
+import type { CSSProperties } from "react";
+
 const F = "/figma/";
+const V = "/v2/";
 
 export const IMG = {
   logo: `${F}imgNoirLogo1.jpg`,
-  avatar: `${F}imgEllipse6107.png`,
-  near: `${F}imgImage1059.png`,
-  nearLg: `${F}imgImage1037.png`,
-  zecCoin: `${F}imgGroup1948762978.svg`,
-  zecShielded: `${F}imgGroup1948762865.svg`,
+  // 演示钱包（Try the extension）里用到的代币和链图标
   usdt: `${F}imgImage4.png`,
   usdc: `${F}imgImage3.png`,
   eth: `${F}imgImage1049.png`,
-  ethGlyph: `${F}imgGroup1948760748.svg`,
-  solGlyph: `${F}imgSolanaSolLogo1.svg`,
-  account: `${F}imgGroup1948762998.svg`,
-  flip: `${F}imgGroup1948762933.svg`,
-  qr: `${F}imgImage1056.png`,
+  zecCoin: `${F}imgGroup1948762978.svg`,
   aave: `${F}imgImage1045.png`,
-  hand: `${F}imgGroup1948763157.svg`,
-  // 首屏网络/代币统计和新版钱包用到的小图标
-  zecChain: `${F}imgGroup1948762160.svg`,
-  zecChip: `${F}imgImage1047.png`,
   ethChip: `${F}imgImage902.png`,
   arbChip: `${F}imgGroup1948761781.svg`,
   bnbChip: `${F}imgGroup1948761777.svg`,
-  btc: `${F}imgEllipse5698.png`,
-  nearChain: `${F}imgGroup1948761782.svg`,
+  // How Noir Wallet Works 中间的护盾
+  shieldGlyph: `${F}imgGroup1948763176.svg`,
 } as const;
 
-/** 新版钱包首页（设计稿：Liam）上的代币行。 */
-export const HOME_TOKENS = [
-  { sym: "ZEC", icon: IMG.zecCoin, chip: IMG.zecChip, price: "$1,120", change: "-1.57%", value: "$1,220.23", amount: "0.9845" },
-  { sym: "USDT", icon: IMG.usdt, chip: IMG.ethChip, price: "$0.99", value: "$2,401.21", amount: "2,401.24", hl: true },
-  { sym: "USDC", icon: IMG.usdc, chip: IMG.ethChip, price: "$0.99", value: "$2,400.02", amount: "2,400.05" },
-  { sym: "ETH", icon: IMG.eth, chip: IMG.ethChip, price: "$2,238.96", change: "-4.68%", value: "$1,220.23", amount: "0.5450" },
+/** 设计稿里手机框的宽度（CSS px）。 */
+export const PHONE_WIDTH = 375;
+
+/**
+ * 设计稿导出的钱包图（2 倍图，透明底）：四周留了阴影的空白，有的还带伸出手机框的标注，
+ * 底部的模糊淡出也已经做在图里。frame 是手机框左上角在图里的位置（CSS px），
+ * 放进页面时按手机框对齐，见 frameStyle。
+ */
+export type PhoneShot = { src: string; width: number; height: number; frame: { x: number; y: number } };
+
+export const PHONES = {
+  /** 首屏：Shield 账户首页。 */
+  hero: { src: `${V}hero-wallet.webp`, width: 435, height: 754, frame: { x: 30, y: 30 } },
+  /** Send Privately：首页，Send / Receive 按钮放大标出（向左伸出手机框）。 */
+  send: { src: `${V}send-privately.webp`, width: 464, height: 667, frame: { x: 79, y: 10 } },
+  /** Receive Privately：收款地址页，二维码和地址都是糊的。 */
+  receive: { src: `${V}receive-privately.webp`, width: 395, height: 667, frame: { x: 10, y: 10 } },
+  /** Shield & Unshield：Public 账户，ZEC 那一行连同一键 Shield 按钮放大标出（向两边伸出手机框）。 */
+  shieldToken: { src: `${V}shield-token.webp`, width: 558, height: 754, frame: { x: 96, y: 30 } },
+} as const satisfies Record<string, PhoneShot>;
+
+/** 容器宽度就是手机框的宽度：图按比例放大，再往左上挪掉留白，手机框正好落在容器里。 */
+export function frameStyle(shot: PhoneShot): CSSProperties {
+  const k = 100 / PHONE_WIDTH;
+  return {
+    width: `${shot.width * k}%`,
+    maxWidth: "none",
+    marginLeft: `${-shot.frame.x * k}%`,
+    marginTop: `${-shot.frame.y * k}%`,
+  };
+}
+
+export const SHOTS = {
+  /** 钱包 + DApp 页面 + 中间的连线，整张 1000 × 716.5（钱包占左边 355）。 */
+  defi: { src: `${V}defi-access.webp`, width: 1000, height: 716.5 },
+  statue: { src: `${V}statue.webp`, width: 2294, height: 1106 },
+} as const;
+
+export type TransferTab = {
+  id: "send" | "receive";
+  title: string;
+  body: string;
+  shot: keyof typeof PHONES;
+  alt: string;
+};
+
+export const TRANSFER_TABS: TransferTab[] = [
+  {
+    id: "send",
+    title: "Send Privately",
+    body: "Send tokens in seconds without revealing who sent what to whom.",
+    shot: "send",
+    alt: "Noir Wallet home on the Shield account, $4,489.21 across privacy providers, with the Send and Receive buttons called out.",
+  },
+  {
+    id: "receive",
+    title: "Receive Privately",
+    body: "Receive tokens on a shielded address that hides your balance and identity.",
+    shot: "receive",
+    alt: "Receiving Address screen for ZEC on a NEAR Confidential address: send at least $2 of ZEC. The QR code and the one-time address are blurred.",
+  },
 ];
 
-/** Liam 的公开地址（沿用官网 mock 上的演示地址）。 */
-export const PUBLIC_ADDRESS = "0x1769…457A8f4";
-
-/** Shield 视图里的隐私服务商（设计稿：两个已接入、两个即将支持，合计 $4,489.21）。 */
-export const PROVIDERS: { name: string; icon: string; tone: string; balance?: string; coins?: string[] }[] = [
-  {
-    name: "NEAR Confidential",
-    icon: IMG.nearLg,
-    tone: "near",
-    balance: "$3,058.02",
-    coins: [IMG.zecCoin, IMG.usdt, IMG.usdc, IMG.eth],
-  },
-  { name: "Zcash shield", icon: `${F}imgGroup1948762866.svg`, tone: "zcash", balance: "$1,431.19", coins: [IMG.zecCoin] },
-  { name: "ZAMA", icon: `${F}imgGroup1948763186.svg`, tone: "zama" },
-  { name: "Privacy Pools", icon: `${F}imgGroup1948763187.svg`, tone: "pools" },
-];
-
-export const DAPPS = [
-  { name: "Noir Lending", url: "app.zknoir.com/lending", icon: IMG.logo },
-  { name: "Noir Perp", url: "app.zknoir.com/perps", icon: IMG.logo },
-  { name: "Aave Lending", url: "app.aave.com", icon: IMG.aave },
-];
-
-export type Scene = "send" | "receive" | "move" | "defi";
-
-export const STAGES: { scene: Scene; title: string; body: string }[] = [
-  {
-    scene: "send",
-    title: "Send privately",
-    body: "Send from your Shield balance, not your public address. Provider, fee and time are shown before you sign.",
-  },
-  {
-    scene: "receive",
-    title: "Receive privately",
-    body: "Ask to receive ZEC on a Zcash shielded address. It lands in your Shield balance.",
-  },
-  {
-    scene: "move",
-    title: "Move privately",
-    body: "Deposit from Public into Shield. Cluster uses multiple transactions for stronger privacy; Directly is one faster transaction.",
-  },
-  {
-    scene: "defi",
-    title: "Private DeFi access",
-    body: "Switch to your Incognito account in one tap and use dApps: lending, perps, cash out.",
-  },
+export const SHIELD_POINTS = [
+  "One-click shield tokens",
+  "Shield tokens from wallet",
+  "Unshield tokens to wallet",
+  "Integrate multiple shield providers",
 ];
 
 /** Supported Shield Tools：前两个已接入，其余即将支持。 */
 export const TOOLS: { name: string; icon: string; soon?: boolean }[] = [
   { name: "Zcash Shield", icon: `${F}imgGroup1948762866.svg` },
-  { name: "NEAR Confidential", icon: IMG.nearLg },
+  { name: "Near Confidential", icon: `${F}imgImage1037.png` },
   { name: "Railgun", icon: `${F}imgGroup1948763189.svg`, soon: true },
   { name: "Privacy Pool", icon: `${F}imgGroup1948763187.svg`, soon: true },
   { name: "ZAMA", icon: `${F}imgGroup1948763186.svg`, soon: true },
 ];
+
+export const DEFI_LEAVES = ["Lending", "Perps", "Cash Out"];

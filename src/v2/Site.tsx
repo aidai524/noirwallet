@@ -1,15 +1,21 @@
-/** 新版官网：Demo Day 方向 1 的版式和动效，内容换成官网介绍。 */
+/** 新版官网（设计稿第二版）：首屏点阵 + 三块功能介绍 + 路径图 + 隐私工具 + 雕像收尾。 */
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { walletLinkProps } from "../walletStore";
 import { IMG, TOOLS } from "./content";
 import { DeskNote } from "./DeskNote";
+import { DefiAccess, PrivateTransfers, ShieldUnshield } from "./Features";
 import { Hero } from "./Hero";
 import { Icon } from "./Icon";
-import { Transfers } from "./Transfers";
+import { loadDemo } from "./demoLoader";
+import { Statue } from "./Statue";
+import { TryExtension } from "./TryExtension";
 import { Workflow } from "./Workflow";
 
-function SiteHeader() {
+const ExtensionDemo = lazy(loadDemo);
+
+function SiteHeader({ inert }: { inert: boolean }) {
   return (
-    <header className="site-head">
+    <header className="site-head" inert={inert}>
       <div className="wrap">
         <a className="brand" href="#top" aria-label="Noir Wallet, back to top">
           <img src={IMG.logo} alt="" />
@@ -30,19 +36,21 @@ function SiteHeader() {
   );
 }
 
-/** 支持的隐私服务商。还没接入的置灰并标 Soon。 */
+/** 支持的隐私服务商：标题占第一格，已接入的两个排在它右边，即将支持的置灰并标 Soon。 */
 function ShieldTools() {
   return (
-    <section className="sec" id="tools" aria-labelledby="tools-title">
-      <div className="wrap">
-        <h2 className="sec-title" id="tools-title">
-          Supported Shield Tools
+    <section className="tools-sec" aria-labelledby="tools-title">
+      <div className="tools">
+        <h2 className="tools-title" id="tools-title">
+          Supported
+          <br />
+          Shield Tools
         </h2>
-        <p className="sec-sub">Shield through Zcash Shield and NEAR Confidential today. More are on the way.</p>
-        <ul className="tool-grid">
+        {/* 列表本身不占格子，卡片直接排进外层的网格 */}
+        <ul className="tools-list">
           {TOOLS.map((tool) => (
             <li key={tool.name} className={`tool${tool.soon ? " is-soon" : ""}`}>
-              <img src={tool.icon} alt="" />
+              <img src={tool.icon} width={60} height={60} alt="" loading="lazy" />
               <b>{tool.name}</b>
               {tool.soon && <em>Soon</em>}
             </li>
@@ -53,22 +61,25 @@ function ShieldTools() {
   );
 }
 
-function Journey() {
+function Journey({ onTry }: { onTry: () => void }) {
   return (
     <section className="end" id="downloads" aria-labelledby="end-title">
       <div className="wrap">
-        <h2 id="end-title">Start your private on-chain journey.</h2>
-        <p>
-          Noir Wallet for Chrome. Live on <b>Zcash</b> and <b>major EVMs</b>.
-        </p>
+        <h2 id="end-title">
+          Start Your
+          <br />
+          Private On-Chain Journey.
+        </h2>
         <div className="cta-row">
           <a className="btn" {...walletLinkProps}>
             <Icon name="download" />
             Install Wallet
           </a>
+          <TryExtension variant="ghost" onOpen={onTry} />
           {/* 现有官网的 Docs 也还没有文档地址，这里保持同样的占位。 */}
           <a className="btn btn-ghost" id="docs" href="#docs">
             Docs
+            <Icon name="external" />
           </a>
         </div>
         <DeskNote />
@@ -77,33 +88,56 @@ function Journey() {
   );
 }
 
-function SiteFooter() {
+function SiteFooter({ inert }: { inert: boolean }) {
   return (
-    <footer className="site-foot">
-      <div className="wrap">
-        <span>© 2026 Noir Privacy Terminal. All rights reserved.</span>
-        <nav aria-label="Footer">
-          <a href="#features">Features</a>
-          <a href="#workflow">Workflow</a>
-          <a href="#downloads">Downloads</a>
-        </nav>
-      </div>
+    <footer className="site-foot" inert={inert}>
+      <Statue />
+      <p className="foot-copy">© 2026 Noir Privacy Terminal. All rights reserved.</p>
+      <p className="wordmark" aria-hidden="true">
+        Noir Wallet
+      </p>
     </footer>
   );
 }
 
 export function Site() {
+  // 「Try the extension」演示：点了才加载那一包。关掉后焦点回到打开它的按钮。
+  const [demo, setDemo] = useState(false);
+  const trigger = useRef<HTMLElement | null>(null);
+  const openDemo = () => {
+    trigger.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setDemo(true);
+  };
+
+  useEffect(() => {
+    if (!demo) trigger.current?.focus({ preventScroll: true });
+  }, [demo]);
+
+  // 演示打开时，后面的页面整体 inert：Tab 不会跑到弹层外面，读屏也只读弹层。
   return (
     <>
-      <SiteHeader />
-      <main id="top">
-        <Hero />
-        <Transfers />
+      <SiteHeader inert={demo} />
+      <main id="top" inert={demo}>
+        <Hero onTry={openDemo} />
+        <PrivateTransfers />
+        <ShieldUnshield />
+        <DefiAccess />
         <Workflow />
         <ShieldTools />
-        <Journey />
+        <Journey onTry={openDemo} />
       </main>
-      <SiteFooter />
+      <SiteFooter inert={demo} />
+      {demo && (
+        <Suspense
+          fallback={
+            <div className="xo-loading" role="status">
+              Loading the wallet demo…
+            </div>
+          }
+        >
+          <ExtensionDemo onClose={() => setDemo(false)} />
+        </Suspense>
+      )}
     </>
   );
 }

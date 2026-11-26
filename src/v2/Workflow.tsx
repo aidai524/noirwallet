@@ -1,159 +1,88 @@
 /**
- * How Noir Wallet works：沿用方向 1 的路径图。
- * 白点（公开可见）走进 Shield，出来变成金点（私有），再分到 DeFi 的三个去处。
- * 所有动画共用 4.8s 周期：0–25% 进 Shield，38–62% 到私有账户，64–86% 分到 DeFi。
+ * How Noir Wallet Works（按设计稿的路径图）：Public Accounts → Shield Balance → Private Accounts → DeFi。
+ * 桌面上按设计稿 1154 × 440 的画布排，容器变窄时整张等比缩小；手机上改成竖排。
+ * 连线上跑一段高亮，从公开账户一路流到 DeFi。
  */
+import { type CSSProperties, type RefObject, useEffect, useRef, useState } from "react";
+import { DEFI_LEAVES, IMG } from "./content";
 import { Icon } from "./Icon";
 
-const PERIOD = "4.8s";
+const CANVAS_W = 1154;
 
-type Hop = { path: string; points: string; times: string; fade: string; fadeTimes: string };
-
-const HOP_IN: Hop = {
-  path: "M2 20 H94",
-  points: "0;1;1",
-  times: "0;0.25;1",
-  fade: "0;1;1;0;0",
-  fadeTimes: "0;0.03;0.22;0.25;1",
-};
-const HOP_OUT: Hop = {
-  path: "M2 20 H94",
-  points: "0;0;1;1",
-  times: "0;0.38;0.62;1",
-  fade: "0;0;1;1;0;0",
-  fadeTimes: "0;0.38;0.41;0.59;0.62;1",
-};
-const FAN = ["M2 100 C44 100 44 28 86 28", "M2 100 H86", "M2 100 C44 100 44 172 86 172"];
-const HOP_FAN = { points: "0;0;1;1", times: "0;0.64;0.86;1", fade: "0;0;1;1;0;0", fadeTimes: "0;0.64;0.67;0.83;0.86;1" };
-
-function Packet({ hop, path, delay, tone }: { hop: Omit<Hop, "path">; path: string; delay: number; tone: "pub" | "priv" }) {
-  return (
-    <circle r="4" className={`packet packet-${tone}`} opacity="0">
-      <animateMotion
-        dur={PERIOD}
-        repeatCount="indefinite"
-        path={path}
-        keyPoints={hop.points}
-        keyTimes={hop.times}
-        calcMode="linear"
-        begin={`${delay}s`}
-      />
-      <animate
-        attributeName="opacity"
-        dur={PERIOD}
-        repeatCount="indefinite"
-        values={hop.fade}
-        keyTimes={hop.fadeTimes}
-        begin={`${delay}s`}
-      />
-    </circle>
-  );
-}
-
-function Wire({ tone }: { tone: "pub" | "priv" }) {
-  const hop = tone === "pub" ? HOP_IN : HOP_OUT;
-  return (
-    <div className={`wire wire-${tone}`} aria-hidden="true">
-      <svg viewBox="0 0 96 40" width="96" height="40">
-        <path className="wire-line" d={hop.path} />
-        {[0, 0.18, 0.36].map((delay) => (
-          <Packet key={delay} hop={hop} path={hop.path} delay={delay} tone={tone} />
-        ))}
-      </svg>
-      <span className="p-down">
-        <i />
-      </span>
-    </div>
-  );
-}
-
-function Fan() {
-  return (
-    <div className="fan" aria-hidden="true">
-      <svg viewBox="0 0 88 200" width="88" height="200">
-        {FAN.map((d) => (
-          <path key={d} className="wire-line is-amber" d={d} />
-        ))}
-        {FAN.map((d) => (
-          <Packet key={d} hop={HOP_FAN} path={d} delay={0} tone="priv" />
-        ))}
-      </svg>
-      <span className="p-down">
-        <i />
-      </span>
-    </div>
-  );
+/** 容器宽度不够放下设计稿画布时的缩放比例；手机竖排时不缩放。 */
+function useFit(ref: RefObject<HTMLDivElement | null>) {
+  const [k, setK] = useState(1);
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    const observer = new ResizeObserver(([entry]) => {
+      setK(Math.min(1, entry.contentRect.width / CANVAS_W));
+    });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [ref]);
+  return k;
 }
 
 export function Workflow() {
+  const fitRef = useRef<HTMLDivElement>(null);
+  const k = useFit(fitRef);
+
   return (
-    <section className="sec" id="workflow" aria-labelledby="workflow-title">
+    <section className="sec works-sec" id="workflow" aria-labelledby="workflow-title">
       <div className="wrap">
         <h2 className="sec-title" id="workflow-title">
-          How Noir Wallet works
+          How Noir Wallet Works
         </h2>
-        <p className="sec-sub">
-          Funds go from your public accounts into Shield, then on to private accounts for DeFi. Watch what stays visible
-          along the way.
-        </p>
-
-        <div className="flow">
-          <div className="node node-pub">
-            <b>Public Accounts</b>
-            <span className="node-desc">Your everyday addresses. Anyone can look them up.</span>
-            <code>
-              <i className="dot-w" />
-              0x1769…457A8f4 · 500 USDT
-            </code>
-          </div>
-          <Wire tone="pub" />
-          <div className="node node-shield">
-            <span className="shield-ring" aria-hidden="true" />
-            <b>Shield Balance</b>
-            <ul className="shield-acts">
-              <li>
-                <Icon name="send" />
-                Send privately
-              </li>
-              <li>
-                <Icon name="receive" />
-                Receive privately
-              </li>
-            </ul>
-            <span className="cipher" aria-hidden="true">
-              {Array.from({ length: 14 }, (_, k) => (
-                <i key={k} style={{ animationDelay: `${k * 90}ms` }} />
-              ))}
+        <div ref={fitRef} className="works-fit" style={{ "--k": k } as CSSProperties}>
+          <div className="works">
+            <div className="wk-box wk-pub">Public Accounts</div>
+            <span className="wk-wire" aria-hidden="true">
+              <i />
             </span>
-          </div>
-          <Wire tone="priv" />
-          <div className="node node-priv">
-            <b>Private Accounts</b>
-            <span className="node-desc">Use DeFi without exposing your on-chain identity.</span>
-            <code>
-              <i className="dot-g" />
-              0x17…4abb · not linked to you
-            </code>
-          </div>
-          <Fan />
-          <div className="defi">
-            <p className="defi-h">DeFi interactions</p>
-            <div className="leaf">Lending</div>
-            <div className="leaf">Perps</div>
-            <div className="leaf">Cash out</div>
+            <div className="wk-shield">
+              <span className="wk-ring" aria-hidden="true" />
+              <div className="wk-core">
+                <img src={IMG.shieldGlyph} width={123} height={133} alt="" />
+                <b>Shield Balance</b>
+              </div>
+              <div className="wk-chip wk-send">
+                <Icon name="send" />
+                <span>Send Privately</span>
+              </div>
+              <div className="wk-chip wk-recv">
+                <Icon name="receive" />
+                <span>Receive Privately</span>
+              </div>
+            </div>
+            <span className="wk-wire is-late" aria-hidden="true">
+              <i />
+            </span>
+            <div className="wk-box wk-priv">Private Accounts</div>
+            {/* 往三个 DeFi 去的分叉：上下两条弯线 + 中间一条直线 */}
+            <svg className="wk-fan" viewBox="0 0 52 172" aria-hidden="true">
+              <path className="wk-fan-line" d="M0 86H5C17 86 27 76 27 64V23C27 11 37 1 49 1H52" />
+              <path className="wk-fan-line" d="M0 86H52" />
+              <path className="wk-fan-line" d="M0 86H5C17 86 27 96 27 108V149C27 161 37 171 49 171H52" />
+              <path className="wk-fan-spark" pathLength={100} d="M0 86H5C17 86 27 76 27 64V23C27 11 37 1 49 1H52" />
+              <path className="wk-fan-spark" pathLength={100} d="M0 86H52" />
+              <path className="wk-fan-spark" pathLength={100} d="M0 86H5C17 86 27 96 27 108V149C27 161 37 171 49 171H52" />
+            </svg>
+            <div className="wk-defi">
+              <b>Defi Interactions</b>
+              <ul>
+                {DEFI_LEAVES.map((leaf) => (
+                  <li key={leaf}>{leaf}</li>
+                ))}
+              </ul>
+              <span className="wk-more" aria-label="and more">
+                <i />
+                <i />
+                <i />
+              </span>
+            </div>
           </div>
         </div>
-
-        <p className="legend">
-          <span>
-            <i className="dot-w" />
-            Publicly visible
-          </span>
-          <span>
-            <i className="dot-g" />
-            Private
-          </span>
-        </p>
       </div>
     </section>
   );

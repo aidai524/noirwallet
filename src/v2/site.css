@@ -32,6 +32,8 @@ body {
   background: #000;
   color: #fff;
   font: 400 16px/1.55 "DM Sans", system-ui, sans-serif;
+  /* 设计稿（Figma）里 DM Sans 一律用 14 的光学尺寸，大字会比浏览器自动选的更宽一些。 */
+  font-variation-settings: "opsz" 14;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
@@ -65,6 +67,10 @@ ul {
   width: calc(100% - 2 * var(--gutter));
   max-width: 1280px;
   margin: 0 auto;
+}
+/* 演示钱包照真实扩展的字形，不跟设计稿的光学尺寸。 */
+.xd {
+  font-variation-settings: normal;
 }
 .sr {
   position: absolute;
@@ -161,8 +167,7 @@ ul {
 .btn:focus-visible,
 .site-nav a:focus-visible,
 .brand:focus-visible,
-.seg button:focus-visible,
-.stage:focus-visible {
+.pt-tab:focus-visible {
   outline: 2px solid var(--mint);
   outline-offset: 2px;
 }
@@ -185,36 +190,21 @@ ul {
   font-size: 14px;
   padding: 0 14px;
 }
-
-.seg {
-  display: inline-flex;
-  padding: 3px;
-  border-radius: 8px;
-  background: var(--tile);
-  border: 1px solid #262626;
-}
-.seg button {
-  font: 500 14px/1 "DM Sans", system-ui, sans-serif;
-  color: var(--mute-2);
-  background: none;
-  border: 0;
-  border-radius: 6px;
-  padding: 0 12px;
-  min-height: 36px;
-  cursor: pointer;
-  transition:
-    background 0.2s,
-    color 0.2s;
-}
-.seg button.on {
-  background: rgba(255, 255, 255, 0.12);
+/* 首屏「Try the extension」：薄荷绿描边 + 微光，比 Docs 显眼、又不抢「Get Noir Wallet」。 */
+.btn-try {
+  position: relative;
+  background: rgba(0, 209, 138, 0.1);
   color: #fff;
+  border: 1px solid rgba(0, 209, 138, 0.62);
+  box-shadow: 0 0 26px rgba(0, 209, 138, 0.16);
 }
-.seg button.is-priv.on {
-  background: rgba(255, 204, 0, 0.14);
-  color: var(--gold);
+.btn-try:hover {
+  background: rgba(0, 209, 138, 0.18);
+  border-color: var(--mint);
 }
-
+.btn-try svg {
+  color: var(--mint);
+}
 /* 手机上提示钱包要在桌面 Chrome 装 */
 .desk-note {
   display: none;
@@ -235,7 +225,13 @@ ul {
 /* ---------- hero：按设计稿，点阵 + 文案 + 右侧新版钱包 ---------- */
 .hero {
   position: relative;
+  display: grid;
   overflow: hidden;
+}
+/* 点阵和钱包叠在同一格里：首屏高度取两者中较高的那个（钱包比点阵长，往下淡出）。 */
+.hero-stage,
+.hero-phone-layer {
+  grid-area: 1 / 1;
 }
 /* 首屏内容列：比页面版心窄，文案和钱包都对齐到这一列。 */
 .hero-wrap {
@@ -261,7 +257,7 @@ ul {
   pointer-events: none;
 }
 .hero-copy .inner {
-  max-width: 470px;
+  max-width: 520px;
   padding-top: 48px;
 }
 .hero-copy .inner > * {
@@ -274,7 +270,7 @@ ul {
   letter-spacing: -0.01em;
 }
 .lede {
-  max-width: 440px;
+  max-width: 462px;
   margin: 18px 0 44px;
   font-size: 15px;
   line-height: 1.55;
@@ -382,801 +378,92 @@ ul {
   opacity: 1;
 }
 
-/* 钱包压在点阵和统计两段上，往下淡出。 */
+/* 钱包首页截图（设计稿导出的图，底部的模糊淡出已经做在图里）：压在点阵上。
+   容器宽度就是手机框宽度，图按 frameStyle 放大、挪掉四周的留白。 */
 .hero-phone-layer {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  pointer-events: none;
-}
-.hero-phone-layer .hero-wrap {
   position: relative;
-  height: 100%;
+  z-index: 3;
+  padding-top: 250px;
+  pointer-events: none;
 }
 .hero-phone {
-  position: absolute;
-  right: 0;
-  top: 236px;
-  bottom: 0;
-  width: 356px;
-  pointer-events: auto;
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(#000 calc(100% - 110px), transparent);
-  mask-image: linear-gradient(#000 calc(100% - 110px), transparent);
-}
-
-/* 新版钱包界面 */
-.hw {
   position: relative;
-  width: 356px;
+  display: flow-root;
+  width: 375px;
   max-width: 100%;
-  background: #13131b;
-  border: 1px solid #3c3c48;
-  border-radius: 16px;
-  overflow: hidden;
-  color: #fff;
-  font: 400 14px/1.35 "DM Sans", system-ui, sans-serif;
-  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
-}
-.hw-home {
-  position: relative;
-  overflow: hidden;
-}
-.hw-home::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -40%;
-  height: 40%;
-  background: linear-gradient(rgba(61, 255, 190, 0), rgba(61, 255, 190, 0.14) 75%, rgba(61, 255, 190, 0.55));
-  pointer-events: none;
-  opacity: 0;
-}
-.hw-home.is-shield::after {
-  animation: hw-scan 1.1s ease-out;
-}
-@keyframes hw-scan {
-  0% {
-    top: -40%;
-    opacity: 1;
-  }
-  100% {
-    top: 100%;
-    opacity: 1;
-  }
-}
-.hw-top {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 12px 4px 14px;
-}
-.hw-ava {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1px solid #3c3c48;
-}
-.hw-name {
-  font-size: 15px;
-  font-weight: 500;
-}
-.hw-seg {
-  position: relative;
-  display: flex;
-  margin-left: 26px;
-  padding: 3px;
-  border-radius: 9px;
-  background: #1f1f29;
-}
-.hw-seg button {
-  position: relative;
-  z-index: 1;
-  width: 56px;
-  height: 28px;
-  padding: 0;
-  border: 0;
-  border-radius: 7px;
-  background: none;
-  color: #8b8b96;
-  font: 500 14px/1 "DM Sans", system-ui, sans-serif;
-  cursor: pointer;
-  transition: color 0.3s;
-}
-.hw-seg button.on {
-  color: #fff;
-}
-.hw-seg button:focus-visible {
-  outline: 2px solid var(--mint);
-  outline-offset: 2px;
-}
-.hw-seg-thumb {
-  position: absolute;
-  left: 3px;
-  top: 3px;
-  bottom: 3px;
-  width: 56px;
-  border-radius: 7px;
-  background: #3a3a48;
-  transition:
-    transform 0.35s cubic-bezier(0.3, 0.7, 0.2, 1),
-    background 0.35s;
-}
-/* 设计稿二：Shield 选中时和 Wallet 一样是灰底白字 */
-.is-shield .hw-seg-thumb {
-  transform: translateX(56px);
-}
-.hw-menu {
   margin-left: auto;
+  pointer-events: auto;
+}
+.hero-phone img {
+  height: auto;
+  transition: filter 0.2s;
+}
+/* 点钱包图打开演示：悬停时钱包提亮，中间浮出提示。 */
+.hero-phone-hit {
+  position: absolute;
+  inset: 0 0 35%;
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
-}
-.hw-menu svg {
-  width: 22px;
-  height: 22px;
-}
-.hw-total {
-  padding: 10px 16px 0;
-  font-size: 16px;
-  color: #c2c2cc;
-  font-variant-numeric: tabular-nums;
-}
-.hw-cards {
-  position: relative;
-  height: 112px;
-  margin: 12px 14px 0;
-}
-.hw-card {
-  position: absolute;
-  top: 0;
-  left: 0;
-  margin: 0;
-  border: 0;
-  border-radius: 10px;
-  font: inherit;
-  text-align: left;
-  transition:
-    left 0.45s cubic-bezier(0.3, 0.7, 0.2, 1),
-    top 0.45s cubic-bezier(0.3, 0.7, 0.2, 1),
-    width 0.45s cubic-bezier(0.3, 0.7, 0.2, 1),
-    height 0.45s cubic-bezier(0.3, 0.7, 0.2, 1),
-    padding 0.45s,
-    box-shadow 0.5s;
-}
-button.hw-card {
   cursor: pointer;
 }
-button.hw-card:focus-visible {
-  outline: 2px solid var(--mint);
-  outline-offset: 2px;
+.hero-phone:hover img {
+  filter: brightness(1.08);
 }
-/* 宽度按容器比例：钱包 356px 宽时约等于设计稿的 200 / 140px，变窄时两张卡一起缩。 */
-.hw-card.is-front {
-  left: 40%;
-  top: 0;
-  z-index: 2;
-  width: 60%;
-  height: 106px;
-  padding: 16px 14px;
-  box-shadow: -14px 0 26px rgba(0, 0, 0, 0.5);
-}
-.hw-card.is-back {
-  left: 0;
-  top: 13px;
-  z-index: 1;
-  width: 43%;
-  height: 80px;
-  padding: 16px 12px;
-}
-.hw-public {
-  background: linear-gradient(135deg, #d9d9d9, #8d8d8d);
-  color: #3c3c3c;
-}
-.hw-incog {
-  background: linear-gradient(140deg, #2b2b32, #111116 70%);
-  border: 1px solid #393941;
-  color: #fff;
-}
-.is-shield .hw-incog.is-front {
-  box-shadow:
-    -14px 0 26px rgba(0, 0, 0, 0.5),
-    0 0 32px rgba(255, 184, 0, 0.16);
-}
-.hw-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  white-space: nowrap;
-}
-.hw-public .hw-label {
-  color: #6c6c6c;
-}
-.hw-public .hw-label i {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #8c8c8c;
-}
-.hw-incog .hw-label i {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--gold);
-  box-shadow: 0 0 0 2px rgba(255, 204, 0, 0.25);
-}
-.hw-card b {
-  display: block;
-  margin-top: 8px;
-  font-weight: 600;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-  transition: font-size 0.45s;
-}
-.hw-card.is-back b {
-  font-size: 15px;
-}
-.hw-card.is-front b {
-  font-size: 28px;
-  letter-spacing: -0.4px;
-}
-.hw-public b {
-  color: #3c3c3c;
-}
-.hw-incog b {
-  color: #ffb800;
-}
-.hw-incog-mark {
-  position: absolute;
-  right: 12px;
-  top: 12px;
-  width: 36px;
-  color: #45454d;
-  transition: opacity 0.3s;
-}
-.hw-incog.is-back .hw-incog-mark {
-  opacity: 0;
-}
-.hw-cards .hw-hand {
-  left: 56px;
-  right: auto;
-  top: 44px;
-}
-.hw-body {
-  margin-top: 16px;
-  padding: 16px 14px 0;
-  background: #191921;
-  border-radius: 16px 16px 0 0;
-}
-.hw-acts {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-.hw-acts > * {
-  height: 70px;
-  border: 0;
-  border-radius: 10px;
-  background: #24242e;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font: inherit;
-  font-size: 13px;
-  color: #b4b4be;
-}
-.hw-acts button {
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.hw-acts button:hover {
-  background: #2e2e3a;
-}
-.hw-acts button:focus-visible,
-.hw-tabs button:focus-visible {
-  outline: 2px solid var(--mint);
-  outline-offset: 2px;
-}
-.hw-acts svg {
-  width: 20px;
-  height: 20px;
-  color: #ffb000;
-}
-.hw-tabs {
-  display: flex;
-  gap: 30px;
-  padding: 20px 4px 0;
-}
-.hw-tabs > * {
-  position: relative;
-  padding: 0 0 10px;
-  border: 0;
-  background: none;
-  font: inherit;
-  font-size: 16px;
-  color: #9a9aa6;
-}
-.hw-tabs button {
-  cursor: pointer;
-}
-.hw-tabs > .on {
-  color: #fff;
-}
-.hw-tabs > .on::after {
-  content: "";
-  position: absolute;
-  left: 8%;
-  right: 8%;
-  bottom: 0;
-  height: 2px;
-  border-radius: 1px;
-  background: #fff;
-}
-.hw-filter {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 12px;
-}
-.hw-net {
+.hero-phone-hint {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 30px;
-  padding: 0 10px;
-  border-radius: 8px;
-  background: #24242e;
-  font-size: 13px;
-  color: #c8c8d0;
-}
-.hw-net svg,
-.hw-views svg {
-  width: 14px;
-  height: 14px;
-}
-.hw-views {
-  margin-left: auto;
-  display: flex;
-  padding: 3px;
-  border-radius: 8px;
-  background: #24242e;
-}
-.hw-views i {
-  width: 26px;
-  height: 24px;
-  display: grid;
-  place-items: center;
-  border-radius: 6px;
-  color: #8b8b96;
-}
-.hw-views i.on {
-  background: #373744;
-  color: #fff;
-}
-.hw-more {
-  padding: 0 4px;
-  color: #8b8b96;
-  font-size: 16px;
-  letter-spacing: 1px;
-}
-.hw-tok {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 0 -14px;
-  padding: 12px 16px;
-}
-.hw-tok:first-of-type {
-  margin-top: 8px;
-}
-.hw-tok.hl {
-  background: #20202a;
-}
-.hw-coin {
-  position: relative;
-  width: 34px;
-  height: 34px;
-  flex: none;
-}
-.hw-coin > img {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-}
-.hw-coin i {
-  position: absolute;
-  right: -3px;
-  bottom: -3px;
-  width: 15px;
-  height: 15px;
-  border-radius: 4px;
-  overflow: hidden;
-  border: 1.5px solid #191921;
-}
-.hw-coin i img {
-  width: 100%;
-  height: 100%;
-}
-.hw-tok-n {
-  flex: 1;
-  min-width: 0;
-}
-.hw-tok-n b {
-  display: block;
-  font-size: 16px;
-  font-weight: 500;
-}
-.hw-tok-n span {
-  font-size: 13px;
-  color: #8b8b96;
-}
-.hw-tok-n em {
-  font-style: normal;
-  color: #ff6b6b;
-  margin-left: 6px;
-}
-.hw-tok-v {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-.hw-tok-v b {
-  display: block;
-  font-size: 16px;
-  font-weight: 600;
-}
-.hw-tok-v > span {
-  font-size: 13px;
-  color: #8b8b96;
-}
-
-.hw-dapps {
-  padding-bottom: 6px;
-}
-.hw-as {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 10px;
-  font-size: 12px;
-  color: #8b8b96;
-}
-.hw-as b {
-  color: #fff;
-  font-weight: 500;
-}
-.hw-tag {
-  font-style: normal;
-  font-size: 12px;
-  padding: 0 6px;
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #a7a9ad;
-  line-height: 18px;
-}
-.hw-tag.is-incog {
-  color: var(--gold);
-  background: rgba(255, 204, 0, 0.12);
-}
-.hw-dapp {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 6px;
-  padding: 8px 12px;
-  border-radius: 12px;
-  background: #24242e;
-  animation: nw-in 0.35s ease-out both;
-  animation-delay: calc(var(--k) * 90ms);
-}
-.hw-dapp img {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  flex: none;
-}
-.hw-dapp > span {
-  flex: 1;
-  min-width: 0;
-}
-.hw-dapp b {
-  display: block;
-  font-weight: 500;
-}
-.hw-dapp small {
-  display: block;
-  font-size: 12px;
-  color: #8b8b96;
-}
-.hw-dapp em {
-  font-style: normal;
-  font-size: 12px;
-  font-weight: 500;
-  padding: 5px 10px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-/* 切换 Wallet / Shield 时整块重新进场 */
-.hw-view {
-  animation: nw-in 0.3s ease-out;
-}
-
-/* Shield 视图（设计稿二）：Shield balance · 服务商 · Send / Receive / Swap */
-.hs-bal {
-  padding: 22px 16px 0;
-  text-align: center;
-}
-.hs-bal b {
-  display: block;
-  font-size: 36px;
-  line-height: 1.15;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-  font-variant-numeric: tabular-nums;
-}
-.hs-bal span {
-  display: block;
-  margin-top: 4px;
-  font-size: 15px;
-  color: #c2c2cc;
-}
-.hs-glyphs {
-  display: flex;
-  justify-content: center;
-  gap: 17px;
-  margin-top: 20px;
-  color: #5f5f6b;
-}
-.hs-glyphs svg {
-  width: 18px;
-  height: 18px;
-}
-.hs-glyphs svg:first-child {
-  color: #777782;
-}
-.hs-note {
-  margin-top: 10px;
-  padding: 0 16px;
-  text-align: center;
-  font-size: 13px;
-  color: #6c6c78;
-}
-.hs-body {
-  padding: 20px 14px 16px;
-}
-.hs-acts svg {
-  color: #fff;
-}
-.hs-tabs {
-  gap: 34px;
-  padding-top: 22px;
-}
-.hs-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 18px;
-}
-.hs-card {
-  --glow: rgba(255, 255, 255, 0.12);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 152px;
-  padding: 22px 8px 0;
-  border-radius: 14px;
-  background:
-    radial-gradient(120% 80% at 50% 0%, var(--glow), transparent 70%),
-    #23232d;
-  overflow: hidden;
-  text-align: center;
-  animation: nw-in 0.4s ease-out both;
-  animation-delay: calc(var(--k) * 70ms);
-}
-.hs-card.tone-near {
-  --glow: rgba(38, 190, 130, 0.34);
-}
-.hs-card.tone-zcash {
-  --glow: rgba(255, 255, 255, 0.17);
-}
-.hs-card.tone-zama {
-  --glow: rgba(255, 210, 7, 0.26);
-}
-.hs-card.tone-pools {
-  --glow: rgba(125, 140, 230, 0.3);
-}
-.hs-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 7px;
-}
-.hs-card.tone-zama .hs-icon,
-.hs-card.tone-pools .hs-icon {
-  opacity: 0.55;
-}
-.hs-card > b {
-  margin-top: 12px;
-  font-size: 15px;
-  font-weight: 500;
-  line-height: 1.3;
-}
-.hs-strip {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: 8px;
-  align-self: stretch;
-  margin: auto -8px 0;
-  padding: 9px 10px;
-  background: #2a2a35;
-  font-size: 15px;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(61, 255, 190, 0.55);
+  background: rgba(10, 12, 14, 0.82);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font: 500 15px/1 "DM Sans", system-ui, sans-serif;
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.18s,
+    transform 0.18s;
 }
-.hs-coins {
-  display: flex;
-}
-.hs-coins img {
+.hero-phone-hint svg {
   width: 16px;
   height: 16px;
-  margin-left: -4px;
-  border-radius: 50%;
-  border: 1px solid #2a2a35;
+  color: var(--mint);
 }
-.hs-coins img:first-child {
-  margin-left: 0;
+.hero-phone-hit:hover .hero-phone-hint {
+  opacity: 1;
+  transform: none;
 }
-.hs-soon {
-  margin: auto 0 14px;
-  padding: 3px 10px;
-  border-radius: 6px;
-  background: #3a3a46;
-  font-style: normal;
-  font-size: 12px;
-  color: #8b8b96;
-}
-
-/* 首屏下方：网络和代币数量 */
-.hero-below {
-  position: relative;
-  border-top: 1px solid var(--hair);
-  padding: 96px 0 76px;
-}
-.stats {
-  display: grid;
-  grid-template-columns: minmax(0, 340px) minmax(0, 300px);
-  column-gap: 28px;
-}
-.stat {
-  max-width: 340px;
-}
-.stat-top {
-  display: flex;
-  align-items: center;
-  gap: 22px;
-  min-height: 56px;
-}
-.stat-num {
-  font-size: 52px;
-  line-height: 1;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  font-variant-numeric: tabular-nums;
-}
-.stat-icons {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-}
-.stat-icons > * {
-  width: 30px;
-  height: 30px;
-  border-radius: 7px;
-  flex: none;
-}
-.stat-icons .soon {
-  opacity: 0.55;
-}
-.evm-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2px;
-}
-.evm-grid > * {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-}
-.evm-grid .base {
-  border-radius: 3px;
-  background: #0052ff;
-}
-.evm-grid .bnb {
-  border-radius: 4px;
-}
-.ico-sol {
+/* 演示那一包还在加载时的占位 */
+.xo-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
   display: grid;
   place-items: center;
-  background: #1f1f27;
-}
-.ico-sol img {
-  width: 60%;
-  height: auto;
-}
-.ico-btc {
-  overflow: hidden;
-  background: #f7931a;
-}
-.ico-btc img {
-  width: 100%;
-  height: 100%;
-}
-.stat-coins {
-  display: flex;
-}
-.stat-coins img {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  margin-left: -8px;
-  border: 2px solid #000;
-  flex: none;
-}
-.stat-coins img:first-child {
-  margin-left: 0;
-}
-.stat-title {
-  margin-top: 20px;
-  font-size: 19px;
-  font-weight: 600;
-}
-.stat-sub {
-  margin-top: 8px;
-  font-size: 15px;
-  color: var(--mute);
+  background: rgba(3, 3, 6, 0.84);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  color: var(--mute-2);
+  font-size: 14px;
 }
 
-/* 1199 以下：统计改成一列，避开右边的钱包 */
-@media (max-width: 1199px) {
-  .stats {
-    grid-template-columns: minmax(0, 1fr);
-    row-gap: 40px;
-  }
-}
-
-/* 1000 以下：文案压在点阵上，钱包放到点阵下方居中，再往下是统计 */
+/* 1000 以下：文案压在点阵上，钱包放到点阵下方居中 */
 @media (max-width: 999px) {
   .hero {
     display: flex;
     flex-direction: column;
   }
   .hero-phone-layer {
-    position: relative;
     order: 2;
-    pointer-events: auto;
-  }
-  .hero-phone-layer .hero-wrap {
-    height: auto;
+    padding-top: 0;
   }
   .hero-phone {
-    position: relative;
-    top: auto;
-    right: auto;
-    bottom: auto;
-    width: 356px;
-    max-width: 100%;
-    height: 540px;
     margin: -64px auto 0;
-  }
-  .hero-below {
-    order: 3;
-    border-top: 0;
-    padding: 48px 0 72px;
   }
 }
 
@@ -1186,1493 +473,771 @@ button.hw-card:focus-visible {
 }
 .sec-title {
   font-size: clamp(36px, 4.4vw, 60px);
-  line-height: 1.06;
+  line-height: 1.2;
   font-weight: 600;
   letter-spacing: -0.01em;
   text-align: center;
 }
-.sec-sub {
-  font-size: clamp(16px, 1.3vw, 18px);
-  line-height: 1.6;
-  color: var(--sub);
-  text-align: center;
-  max-width: 34em;
-  margin: 16px auto 0;
-}
-
-/* ---------- Private Transfers：钱包 + 四步 ---------- */
-.entry-card {
-  margin-top: 52px;
-  display: grid;
-  grid-template-columns: minmax(400px, 1fr) minmax(0, 1.08fr);
-  background: var(--card);
-  border: 1px solid var(--card-line);
-  border-radius: 30px;
-  overflow: hidden;
-}
-.entry-stage {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  justify-items: center;
-  align-items: center;
-  padding: 40px 32px;
-  border-right: 1px solid #2a2a2a;
-}
-.entry-stage::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.16) 1.1px, transparent 1.7px) 0 0 / 16px 16px;
-  -webkit-mask-image: radial-gradient(60% 55% at 50% 50%, #000 20%, transparent 75%);
-  mask-image: radial-gradient(60% 55% at 50% 50%, #000 20%, transparent 75%);
-}
-.entry-stage::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(45% 40% at 50% 45%, rgba(0, 209, 138, 0.14), transparent 70%);
-  pointer-events: none;
-}
-.entry-stage .nw {
-  position: relative;
-  z-index: 1;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
-}
-/* 右侧四步撑到和钱包差不多高，不再悬在中间。 */
-.entry-side {
-  padding: 40px clamp(24px, 3.2vw, 52px);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.stages {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.stage {
-  position: relative;
-  display: flex;
-  gap: 18px;
-  width: 100%;
-  text-align: left;
-  background: none;
-  border: 0;
-  color: inherit;
-  font: inherit;
-  padding: 20px 18px;
-  border-radius: 14px;
-  cursor: pointer;
-  overflow: hidden;
-  transition: background 0.2s;
-}
-.stage:hover {
-  background: rgba(255, 255, 255, 0.035);
-}
-.stage.on {
-  background: rgba(255, 255, 255, 0.07);
-}
-.stage-k {
-  font-size: 24px;
-  line-height: 1.05;
-  color: #5c5c66;
-  width: 20px;
-  flex: none;
-}
-.stage.on .stage-k {
-  color: var(--mint);
-}
-.stage-t b {
-  display: block;
-  font-size: 18px;
-  font-weight: 500;
-  line-height: 1.35;
-}
-.stage-t span {
-  display: block;
-  font-size: 15px;
-  line-height: 1.55;
-  color: var(--mute);
-  margin-top: 4px;
-}
-.stage.on .stage-t span {
-  color: var(--sub);
-}
-.stage-bar {
-  position: absolute;
-  left: 56px;
-  right: 18px;
-  bottom: 8px;
-  height: 2px;
-  border-radius: 1px;
-  background: rgba(61, 255, 190, 0.14);
-  overflow: hidden;
-}
-.stage-bar::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: var(--mint);
-  transform-origin: left center;
-  animation: stage-fill var(--t, 6.5s) linear forwards;
-}
-@keyframes stage-fill {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
-}
-/* ---------- 演示钱包（和 Demo Day 草稿同一套外观） ---------- */
-.nw {
-  --nw-tile: rgba(255, 255, 255, 0.06);
-  --nw-tile-2: rgba(255, 255, 255, 0.1);
-  --nw-hair: rgba(255, 255, 255, 0.08);
-  position: relative;
-  width: 360px;
-  max-width: 100%;
-  /* 每屏内容最高约 544px（Send），留一点余量，不出现滚动条。 */
-  height: 560px;
-  flex: none;
-  background: #13131b;
-  border: 1px solid #3c3c48;
-  border-radius: 20px;
-  overflow: hidden;
-  color: #fff;
-  font: 400 14px/1.35 "DM Sans", system-ui, sans-serif;
-  text-align: left;
-  isolation: isolate;
-}
-:where(.nw) :where(h3, p, ol, ul, dl, dd) {
-  margin: 0;
-  padding: 0;
-}
-:where(.nw) button {
-  font: inherit;
-  color: inherit;
-  background: none;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
-  text-align: inherit;
-}
-:where(.nw) button:disabled {
-  cursor: default;
-}
-:where(.nw) button:focus-visible {
-  outline: 2px solid var(--mint);
-  outline-offset: 2px;
-}
-.nw svg {
-  width: 18px;
-  height: 18px;
-  flex: none;
-}
-.nw-scr {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-}
-.nw-anim {
-  animation: nw-in 0.26s ease-out;
-}
-@keyframes nw-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-.nw-scroll {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-width: none;
-  overscroll-behavior: contain;
-}
-.nw-scroll::-webkit-scrollbar {
-  display: none;
-}
-.nw-pad {
-  padding: 4px 16px 8px;
-}
-.nw-center {
-  text-align: center;
-}
-
-.nw-iconbtn {
-  width: 32px;
-  height: 32px;
-  display: grid;
-  place-items: center;
-  border-radius: 8px;
-  color: #fff;
-  flex: none;
-}
-button.nw-iconbtn:hover {
-  background: var(--nw-tile);
-}
-.nw-tag {
-  font-style: normal;
-  font-size: 12px;
-  font-weight: 400;
-  padding: 0 6px;
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--mute-2);
-  line-height: 18px;
-  white-space: nowrap;
-}
-.nw-tag.is-priv {
-  color: var(--gold);
-  background: rgba(255, 204, 0, 0.12);
-}
-.nw-tag.is-shield {
-  color: var(--mint);
-  background: rgba(61, 255, 190, 0.12);
-}
-
-/* 顶栏、底部按钮 */
-.nw-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  height: 52px;
-  padding: 0 10px;
-  flex: none;
-}
-.nw-bar h3 {
-  font-size: 16px;
-  font-weight: 600;
-  text-align: center;
-  flex: 1;
-}
-.nw-bar-sp {
-  width: 32px;
-  flex: none;
-}
-.nw-foot {
-  flex: none;
-  padding: 8px 14px 12px;
-  background: linear-gradient(rgba(18, 18, 28, 0), var(--panel) 30%);
-}
-.nw-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  height: 36px;
-  padding: 0 14px;
-  border-radius: 8px;
-  background: var(--green);
-  color: #000;
-  font-weight: 500;
-  font-size: 14px;
-  white-space: nowrap;
-  transition: background 0.15s;
-}
-.nw-btn:hover {
-  background: var(--mint);
-}
-.nw-btn-lg {
-  display: flex;
-  width: 100%;
-  height: 46px;
-  border-radius: 10px;
-  font-size: 15px;
-}
-.nw-btn-ghost {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 46px;
-  border-radius: 10px;
-  background: var(--nw-tile);
-  font-weight: 500;
-}
-.nw-btn-ghost:hover {
-  background: var(--nw-tile-2);
-}
-.nw-spin {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 2px solid rgba(0, 0, 0, 0.2);
-  border-top-color: #000;
-  animation: spin 0.8s linear infinite;
-}
-
-/* 演示手指：移到开关上，按一下，淡出 */
-.nw-hand {
-  position: absolute;
-  z-index: 3;
-  right: 12px;
-  top: 58%;
-  width: 26px;
-  height: 28px;
-  pointer-events: none;
-  animation: nw-hand 1.8s ease-in-out forwards;
-}
-.nw-hand img {
-  width: 100%;
-  height: 100%;
-}
-@keyframes nw-hand {
-  0% {
-    opacity: 0;
-    transform: translate(24px, 24px);
-  }
-  35% {
-    opacity: 1;
-    transform: translate(0, 0);
-  }
-  52% {
-    transform: translate(0, 3px) scale(0.9);
-  }
-  62% {
-    transform: translate(0, 0) scale(1);
-  }
-  82% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    transform: translate(8px, 10px);
-  }
-}
-
-/* Send */
-.nw-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: 12px;
-  min-height: 26px;
-}
-.nw-lbl {
-  font-size: 12px;
-  color: var(--mute-2);
-}
-.nw-pills {
-  position: relative;
-  display: flex;
-  gap: 6px;
-}
-.nw-pills button {
-  height: 24px;
-  padding: 0 12px;
-  border-radius: 18px;
-  font-size: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--mute-2);
-  transition:
-    background 0.25s,
-    color 0.25s,
-    border-color 0.25s,
-    box-shadow 0.25s;
-}
-.nw-pills button.on {
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.35);
-}
-.nw-pills button.on.is-shield {
-  background: #00ffa3;
-  border-color: #00ffa3;
-  color: #000;
-  box-shadow:
-    0 0 6px rgba(0, 255, 163, 0.55),
-    inset 0 0 8px rgba(255, 255, 255, 0.6);
-}
-.nw-privacy {
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
-  margin-top: 10px;
-  padding: 9px 11px;
-  border-radius: 10px;
-  font-size: 12px;
-  line-height: 1.4;
-  transition:
-    background 0.3s,
-    border-color 0.3s,
-    color 0.3s;
-}
-.nw-privacy svg {
-  width: 16px;
-  height: 16px;
-}
-.nw-privacy.is-ok {
-  background: rgba(0, 209, 138, 0.1);
-  border: 1px solid rgba(61, 255, 190, 0.28);
-  color: #d6fff0;
-}
-.nw-privacy.is-ok svg {
-  color: var(--mint);
-}
-.nw-privacy.is-warn {
-  background: rgba(255, 161, 0, 0.08);
-  border: 1px solid rgba(255, 161, 0, 0.3);
-  color: #ffe2b3;
-}
-.nw-privacy.is-warn svg {
-  color: #ffc04d;
-}
-.nw-net {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  color: var(--mute);
-}
-.nw-net i {
-  width: 16px;
-  height: 16px;
-  border-radius: 5px;
-  background: #6284f5;
-  display: grid;
-  place-items: center;
-}
-.nw-net i img {
-  width: 6px;
-}
-.nw-net svg {
-  width: 12px;
-  height: 12px;
-}
-.nw-field {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: 6px;
-  min-height: 48px;
-  padding: 0 12px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  text-align: left;
-}
-.nw-field b {
-  font-weight: 500;
-  font-size: 15px;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.nw-field > svg {
-  color: var(--mute);
-}
-.nw-meta {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--mute);
-}
-.nw-max {
-  font-size: 12px;
-  font-weight: 500;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: var(--nw-tile);
-  color: var(--mute-2);
-}
-.nw-asset {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 28px;
-  padding: 0 8px 0 4px;
-  border-radius: 14px;
-  background: var(--nw-tile);
-  font-weight: 500;
-  font-size: 14px;
-}
-.nw-asset img {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-}
-.nw-asset svg {
-  width: 14px;
-  height: 14px;
-  color: var(--mute);
-}
-.nw-kv {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 8px 12px;
-  margin-top: 14px;
-  padding: 12px;
-  border-radius: 12px;
-  background: var(--nw-tile);
-  font-size: 12px;
-}
-.nw-kv dt {
-  color: var(--mute-2);
-}
-.nw-kv dd {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 6px;
-}
-.nw-kv dd img {
-  width: 14px;
-  height: 14px;
-  border-radius: 4px;
-}
-.nw-kv .m {
-  color: var(--mute);
-}
-
-/* Receive */
-.nw-flow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  justify-content: center;
-  padding: 14px 0 10px;
-}
-.nw-flow > img {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-}
-.nw-flow > img.r {
-  border-radius: 50%;
-}
-.nw-track {
-  display: flex;
-  gap: 6px;
-}
-.nw-track i {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.16);
-  animation: nw-run 1.4s infinite;
-  animation-delay: calc(var(--k) * 140ms);
-}
-.nw-track.is-done i {
-  animation: none;
-  background: var(--mint);
-}
-@keyframes nw-run {
-  0%,
-  100% {
-    background: rgba(255, 255, 255, 0.14);
-  }
-  40% {
-    background: var(--mint);
-    box-shadow: 0 0 6px var(--mint);
-  }
-}
-.nw-flow-cap {
-  font-size: 13px;
-  color: var(--sub);
-  line-height: 1.45;
-}
-.nw-flow-cap b {
-  color: #fff;
-  font-weight: 600;
-}
-.nw-min {
-  display: inline-block;
-  margin-top: 10px;
-  font-size: 12px;
-  font-weight: 500;
-  padding: 4px 10px;
-  border-radius: 12px;
-  background: var(--nw-tile);
-}
-.nw-qr {
-  width: 124px;
-  height: 124px;
-  margin: 12px auto 0;
-  padding: 8px;
-  border-radius: 12px;
-  background: #fff;
-}
-.nw-qr img {
-  width: 100%;
-  height: 100%;
-  image-rendering: pixelated;
-}
-.nw-label {
-  font-size: 12px;
-  color: var(--mute);
-  margin: 14px 2px 0;
-  text-align: left;
-}
-.nw-copy {
-  font-size: 12px;
-  font-weight: 500;
-  padding: 5px 10px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  white-space: nowrap;
-}
-.nw-addr {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 6px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: var(--nw-tile);
-  text-align: left;
-}
-.nw-addr img {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-}
-.nw-addr div {
-  flex: 1;
-  min-width: 0;
-}
-.nw-addr b {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 500;
-}
-.nw-addr small {
-  display: block;
-  font-size: 12px;
-  color: var(--mute);
-}
-
-/* Move */
-.nw-amt {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 2px 16px 10px;
-}
-.nw-amt-v {
-  font-size: 34px;
-  font-weight: 600;
-  letter-spacing: -0.6px;
-  line-height: 1.15;
-}
-.nw-amt .nw-asset {
-  margin-top: 4px;
-}
-.nw-amt-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 6px;
-  font-size: 12px;
-  color: var(--mute);
-}
-.nw-legs {
-  position: relative;
-  padding: 0 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-.nw-leg {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 54px;
-  padding: 8px 12px;
-  border-radius: 12px;
-  background: var(--nw-tile);
-}
-.nw-leg > img {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-}
-.nw-leg div {
-  flex: 1;
-  min-width: 0;
-}
-.nw-leg small {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--mute);
-}
-.nw-leg b {
-  display: block;
-  font-weight: 500;
-  margin-top: 1px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.nw-leg > svg {
-  width: 16px;
-  height: 16px;
-  color: var(--mute);
-}
-.nw-legs-sw {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 26px;
-  height: 26px;
-  z-index: 1;
-  border-radius: 8px;
-}
-.nw-legs-sw img {
-  width: 100%;
-  height: 100%;
-  transition: transform 0.3s;
-}
-.nw-legs-sw:hover img {
-  transform: rotate(180deg);
-}
-.nw-routes {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
-  padding: 8px 14px 0;
-}
-.nw-route {
-  min-width: 0;
-  padding: 8px 10px;
-  border-radius: 12px;
-  border: 1px solid var(--nw-hair);
-  transition:
-    border-color 0.2s,
-    background 0.2s;
-}
-.nw-route.on {
-  border-color: rgba(61, 255, 190, 0.5);
-  background: rgba(0, 209, 138, 0.06);
-}
-.nw-route b {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px;
-  font-size: 14px;
-  font-weight: 500;
-}
-.nw-route b i {
-  font-style: normal;
-  font-size: 11px;
-  font-weight: 500;
-  color: #000;
-  background: var(--mint);
-  border-radius: 4px;
-  padding: 0 4px;
-  line-height: 17px;
-}
-.nw-route > span {
-  display: block;
-  font-size: 12px;
-  color: var(--mute);
-  margin-top: 1px;
-}
-.nw-route dl {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0 8px;
-  margin-top: 4px;
-  font-size: 12px;
-}
-.nw-route dt {
-  color: var(--mute);
-}
-.nw-route dd {
-  text-align: right;
-  color: var(--sub);
-}
-.nw-split {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 10px 14px 0;
-  padding: 6px 12px;
-  border-radius: 12px;
-  background: var(--nw-tile);
-}
-.nw-split > img {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  flex: none;
-}
-.nw-lanes {
-  position: relative;
-  flex: 1;
-  height: 38px;
-}
-.nw-lanes i {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.2) 0 2px, transparent 2px 6px);
-}
-.nw-lanes i::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: -3px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--gold);
-  box-shadow: 0 0 8px rgba(255, 204, 0, 0.85);
-  opacity: 0;
-  animation: lane var(--t, 2.2s) ease-in-out infinite;
-  animation-delay: var(--d, 0s);
-}
-.is-direct .nw-lanes i::after {
-  background: var(--mint);
-  box-shadow: 0 0 8px rgba(61, 255, 190, 0.8);
-}
-@keyframes lane {
-  0% {
-    left: 0;
-    opacity: 0;
-  }
-  12% {
-    opacity: 1;
-  }
-  85% {
-    opacity: 1;
-  }
-  100% {
-    left: calc(100% - 7px);
-    opacity: 0;
-  }
-}
-
-/* Move 之后的进度 */
-.nw-steps {
-  margin: 18px 0 0;
-  display: flex;
-  flex-direction: column;
-}
-.nw-steps li {
-  position: relative;
-  display: flex;
-  gap: 12px;
-  padding: 0 0 18px;
-}
-.nw-steps li::before {
-  content: "";
-  position: absolute;
-  left: 8px;
-  top: 20px;
-  bottom: 2px;
-  width: 1px;
-  background: var(--nw-hair);
-}
-.nw-steps li:last-child::before {
-  display: none;
-}
-.nw-steps .k {
-  width: 17px;
-  height: 17px;
-  border-radius: 50%;
-  border: 1px solid #4a4a5a;
-  flex: none;
-  margin-top: 1px;
-  display: grid;
-  place-items: center;
-}
-.nw-steps .k svg {
-  width: 11px;
-  height: 11px;
-  color: #000;
-}
-.nw-steps li.done .k {
-  background: var(--green);
-  border-color: var(--green);
-}
-.nw-steps li.now .k {
-  border-color: var(--mint);
-  box-shadow: 0 0 0 3px rgba(61, 255, 190, 0.16);
-}
-.nw-steps li.now .k::after {
-  content: "";
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--mint);
-  animation: blink 1.2s infinite;
-}
-.nw-steps b {
-  display: block;
-  font-weight: 500;
-}
-.nw-steps small {
-  display: block;
-  font-size: 12px;
-  color: var(--mute);
-  margin-top: 1px;
-}
-.nw-steps li.todo b {
-  color: var(--mute-2);
-}
-.nw-note {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  line-height: 1.45;
-  color: #d6fff0;
-  padding: 11px 12px;
-  border-radius: 12px;
-  background: rgba(0, 209, 138, 0.1);
-  border: 1px solid rgba(61, 255, 190, 0.28);
-  animation: nw-in 0.3s ease-out;
-}
-.nw-note svg {
-  width: 16px;
-  height: 16px;
-  color: var(--mint);
-}
-
-/* ---------- How Noir Wallet works：路径图 ---------- */
-.flow {
-  margin: 76px auto 0;
-  max-width: 1180px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 96px minmax(0, 1.1fr) 96px minmax(0, 1fr) 88px minmax(150px, 0.75fr);
-  align-items: center;
-}
-.node {
-  position: relative;
-  border-radius: 20px;
-  background: var(--card);
-  border: 1px solid var(--card-line);
-  padding: 20px 22px;
-}
-.node b {
-  display: block;
-  font-size: 22px;
-  font-weight: 600;
+.feat-title {
+  font-size: clamp(36px, 4vw, 60px);
   line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
-.node-desc {
-  display: block;
-  font-size: 15px;
-  color: var(--mute-2);
-  margin-top: 6px;
-  line-height: 1.45;
+
+/* ---------- 三块功能介绍：和设计稿一样，内容左边留 104、右边留 44 ---------- */
+.feat {
+  padding-top: clamp(96px, 13vw, 200px);
+  /* 截图四周的透明留白和标注可能伸出屏幕边，横向裁掉，免得页面能左右拖 */
+  overflow-x: clip;
 }
-.node code {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid #2a2a2a;
-  font: 500 13px/1.4 "DM Sans", system-ui, sans-serif;
-  color: var(--sub);
+#features {
+  padding-top: clamp(56px, 8.5vw, 128px);
 }
-.dot-w,
-.dot-g {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex: none;
+.feat-row,
+.pt-card {
+  width: min(1200px, 100% - 2 * var(--gutter));
+  margin: 0 auto;
+  padding-left: clamp(0px, 9vw - 32px, 104px);
+  padding-right: clamp(0px, 4vw - 16px, 44px);
 }
-.node code .dot-w,
-.node code .dot-g {
-  margin-top: 5px;
-}
-.dot-w {
-  background: #fff;
-  box-shadow: 0 0 6px rgba(255, 255, 255, 0.7);
-}
-.dot-g {
-  background: var(--gold);
-  box-shadow: 0 0 8px rgba(255, 204, 0, 0.8);
-}
-.node-priv {
-  background: linear-gradient(180deg, #ffa100, #d18400 60%, #996100);
-  border-color: #ffb733;
-}
-.node-priv .node-desc {
-  color: rgba(255, 255, 255, 0.9);
-}
-.node-priv code {
-  border-top-color: rgba(255, 255, 255, 0.25);
-  color: #fff;
-}
-.node-priv .dot-g {
-  background: #fff3c2;
-}
-.node-shield {
-  text-align: center;
-  padding: 28px 22px 24px;
-  border-color: var(--mint);
-  box-shadow:
-    0 0 0 1px rgba(61, 255, 190, 0.25),
-    0 0 40px rgba(61, 255, 190, 0.16);
-  animation: shield-pulse 4.8s ease-in-out infinite;
-}
-@keyframes shield-pulse {
-  0%,
-  18%,
-  46%,
-  100% {
-    box-shadow:
-      0 0 0 1px rgba(61, 255, 190, 0.25),
-      0 0 40px rgba(61, 255, 190, 0.16);
-  }
-  28%,
-  36% {
-    box-shadow:
-      0 0 0 2px rgba(61, 255, 190, 0.6),
-      0 0 70px rgba(61, 255, 190, 0.4);
-  }
-}
-.shield-ring {
-  position: absolute;
-  inset: -14px;
+
+/* Private Transfers：钱包截图 + 两个页签 */
+.pt-card {
+  display: grid;
+  grid-template-columns: 375px minmax(0, 1fr);
+  column-gap: clamp(40px, 5.5vw, 82px);
+  padding-top: 76px;
+  padding-left: clamp(32px, 9vw - 32px, 104px);
+  padding-right: clamp(28px, 4vw - 16px, 44px);
+  background: #16161e;
+  border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 32px;
-  border: 1px dashed rgba(0, 209, 138, 0.85);
-  pointer-events: none;
+  overflow: hidden;
 }
-.shield-acts {
+/* 两张截图叠在同一格，宽度就是手机框宽；Send 那张的标注往左伸出手机框，落在卡片的内边距里。 */
+.pt-shot {
+  display: grid;
+  align-self: end;
+  /* 往下多伸 48px（手机框宽的 12.8%），由卡片底边截掉手机的圆角底边，和设计稿一样像是延伸出卡片。 */
+  margin-bottom: -48px;
+}
+.pt-shot img {
+  grid-area: 1 / 1;
+  height: auto;
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 0.45s ease,
+    transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.pt-shot img.on {
+  opacity: 1;
+  transform: none;
+}
+.pt-side {
+  align-self: center;
+  padding-bottom: 76px;
+}
+.pt-tabs {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 16px;
-  text-align: left;
+  gap: 18px;
+  margin-top: 44px;
 }
-.shield-acts li {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 15px;
-  color: var(--sub);
-  padding: 9px 12px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
-}
-.shield-acts svg {
-  width: 16px;
-  height: 16px;
-  color: var(--mint);
-  flex: none;
-}
-.cipher {
-  display: grid;
-  grid-template-columns: repeat(14, 5px);
-  gap: 6px;
-  justify-content: center;
-  margin-top: 16px;
-}
-.cipher i {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.14);
-  animation: cipher 1.8s infinite;
-}
-@keyframes cipher {
-  0%,
-  100% {
-    background: rgba(255, 255, 255, 0.12);
-  }
-  15% {
-    background: var(--mint);
-    box-shadow: 0 0 6px var(--mint);
-  }
-  35% {
-    background: rgba(255, 255, 255, 0.12);
-  }
-}
-.wire,
-.fan {
+.pt-tab {
   position: relative;
-  display: flex;
-  justify-content: center;
-}
-.wire svg,
-.fan svg {
   display: block;
-  overflow: visible;
+  width: 100%;
+  min-height: 143px;
+  padding: 26px 32px;
+  border: 0;
+  border-radius: 0 6px 6px 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.25s;
 }
-.wire-line {
+.pt-tab.on {
+  background: #111117;
+}
+.pt-tab:not(.on):hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+.pt-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(61, 255, 190, 0.16);
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.pt-tab.on .pt-bar {
+  opacity: 1;
+}
+.pt-bar i {
+  position: absolute;
+  inset: 0;
+  background: var(--mint);
+  box-shadow: 0 0 10px rgba(61, 255, 190, 0.55);
+  transform-origin: top;
+}
+.is-auto .pt-bar i {
+  animation: pt-fill var(--rotate, 6s) linear forwards;
+}
+.is-held .pt-bar i {
+  animation-play-state: paused;
+}
+@keyframes pt-fill {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+.pt-tab b {
+  display: block;
+  font-size: 26px;
+  line-height: 1.2;
+  color: #5d5d68;
+  transition: color 0.25s;
+}
+.pt-tab.on b {
+  color: var(--mint);
+}
+.pt-body {
+  display: block;
+  max-width: 30em;
+  margin-top: 14px;
+  font-size: 17px;
+  line-height: 1.45;
+  color: #4f4f59;
+  transition: color 0.25s;
+}
+.pt-tab.on .pt-body {
+  color: #e4e4ea;
+}
+.pt-tab:not(.on):hover b {
+  color: #8d8d99;
+}
+.pt-tab:not(.on):hover .pt-body {
+  color: #74747f;
+}
+
+/* Shield & Unshield：左边要点，右边 Quick Shield */
+.su {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 375px;
+  column-gap: 48px;
+  align-items: start;
+}
+.su-copy {
+  padding-top: 34px;
+}
+.su-points {
+  display: grid;
+  gap: 36px;
+  margin-top: clamp(48px, 9vw, 136px);
+  padding-left: 12px;
+}
+.su-points li {
+  position: relative;
+  padding-left: 16px;
+  font-size: 20px;
+  line-height: 1.2;
+  color: #e6e6eb;
+}
+.su-points li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 4px;
+  height: 4px;
+  margin-top: -2px;
+  border-radius: 50%;
+  background: currentColor;
+}
+/* 宽度就是手机框宽；ZEC 那行的标注往两边伸出手机框。 */
+.su-shot {
+  display: flow-root;
+  width: 375px;
+  margin-right: clamp(0px, 4vw - 16px, 45px);
+}
+.su-shot img {
+  height: auto;
+}
+
+/* 滚到时淡入：文字先到，截图稍后从下面浮上来 */
+.su-copy,
+.su-shot,
+.da-copy,
+.da-art {
+  transition:
+    opacity 0.7s ease,
+    transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.feat-row:not(.is-in) .su-copy,
+.feat-row:not(.is-in) .da-copy {
+  opacity: 0;
+  transform: translateY(18px);
+}
+.feat-row:not(.is-in) .su-shot,
+.feat-row:not(.is-in) .da-art {
+  opacity: 0;
+  transform: translateY(36px);
+}
+.su-shot,
+.da-art {
+  transition-delay: 0.12s;
+}
+
+/* Private Defi Access：整张示意图，标题压在右上角 DApp 页面的上方 */
+.da {
+  display: grid;
+}
+.da-copy,
+.da-art {
+  grid-area: 1 / 1;
+}
+.da-copy {
+  position: relative;
+  z-index: 1;
+  align-self: start;
+  margin-left: 43.2%;
+  padding-top: 2px;
+}
+.da-copy p {
+  margin-top: clamp(14px, 2vw, 28px);
+  font-size: clamp(16px, 1.4vw, 20px);
+  line-height: 1.35;
+  color: #e6e6eb;
+}
+.da-art {
+  position: relative;
+}
+.da-art img {
+  width: 100%;
+  height: auto;
+}
+.da-wire {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.da-wire path {
   fill: none;
   stroke: var(--mint);
   stroke-width: 3;
   stroke-linecap: round;
-  stroke-dasharray: 0.5 10;
-  animation: flow 1.4s linear infinite;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 9 91;
+  stroke-dashoffset: 100;
+  filter: drop-shadow(0 0 4px var(--mint));
+  opacity: 0;
 }
-.wire-line.is-amber {
-  stroke: var(--amber);
+.da.is-in .da-wire path {
+  opacity: 1;
+  animation: da-run 3.2s linear infinite;
 }
-@keyframes flow {
+@keyframes da-run {
+  from {
+    stroke-dashoffset: 100;
+  }
   to {
-    stroke-dashoffset: -10.5;
+    stroke-dashoffset: 0;
   }
 }
-.packet-pub {
-  fill: #fff;
-  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.9));
-}
-.packet-priv {
-  fill: var(--gold);
-  filter: drop-shadow(0 0 5px rgba(255, 204, 0, 0.95));
-}
-.p-down {
-  display: none;
-}
-.defi {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.defi-h {
+/* DApp 上的账户（图里 0x5b…fed7 那颗胶囊）：高亮跑到时亮一圈 */
+.da-ping {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 100%;
-  margin-bottom: 12px;
-  font-size: 18px;
-  font-weight: 600;
-  white-space: nowrap;
+  left: 80.85%;
+  top: 26.87%;
+  width: 16.55%;
+  height: 6.91%;
+  /* 图里胶囊的圆角约 23px（原图 331 × 99） */
+  border-radius: 6.9% / 23.2%;
+  border: 1px solid transparent;
+  pointer-events: none;
 }
-.leaf {
-  height: 56px;
-  display: flex;
-  align-items: center;
-  padding: 0 18px;
-  border-radius: 16px;
-  background: var(--card);
-  border: 1px solid var(--card-line);
-  font-size: 17px;
-  animation: leaf 4.8s ease-in-out infinite;
+.da.is-in .da-ping {
+  animation: da-ping 3.2s linear infinite;
 }
-@keyframes leaf {
+@keyframes da-ping {
   0%,
-  82%,
+  87% {
+    border-color: rgba(61, 255, 190, 0);
+    box-shadow: 0 0 0 0 rgba(61, 255, 190, 0);
+  }
+  90% {
+    border-color: rgba(61, 255, 190, 0.95);
+    box-shadow: 0 0 0 0 rgba(61, 255, 190, 0.45);
+  }
   100% {
-    border-color: var(--card-line);
-    box-shadow: none;
+    border-color: rgba(61, 255, 190, 0);
+    box-shadow: 0 0 0 12px rgba(61, 255, 190, 0);
   }
-  88%,
-  93% {
-    border-color: #ffb733;
-    box-shadow: 0 0 24px rgba(255, 161, 0, 0.3);
-  }
-}
-.legend {
-  display: flex;
-  justify-content: center;
-  gap: 24px;
-  margin-top: 44px;
-  font-size: 14px;
-  color: var(--mute-2);
-}
-.legend span {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
 }
 
-/* ---------- Supported Shield Tools：单独模块，未接入的置灰并标 Soon ---------- */
-.tool-grid {
+/* ---------- How Noir Wallet Works：按设计稿 1154 × 440 的画布排，窄了整张缩小 ---------- */
+.works-sec {
+  padding-top: clamp(120px, 20vw, 330px);
+}
+.works-fit {
+  margin-top: 72px;
+  height: calc(440px * var(--k, 1));
+}
+.works {
+  position: relative;
+  left: 50%;
+  width: 1154px;
+  height: 440px;
+  transform: translateX(-50%) scale(var(--k, 1));
+  transform-origin: top center;
+}
+.works > * {
+  position: absolute;
+}
+.wk-box,
+.wk-core,
+.wk-chip,
+.wk-defi li {
+  background: #191919;
+  border: 1px solid #696969;
+}
+.wk-box {
+  top: 176px;
+  width: 257px;
+  height: 96px;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 16px;
-  max-width: 1100px;
-  margin: 56px auto 0;
+  place-items: center;
+  border-radius: 20px;
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.wk-pub {
+  left: 0;
+}
+.wk-priv {
+  left: 684px;
+  background: linear-gradient(180deg, #ffa100, #996100);
+  border-color: #997f49;
+}
+.wk-wire {
+  top: 223px;
+  left: 260px;
+  width: 64px;
+  height: 2px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, rgba(0, 209, 138, 0.12), rgba(61, 255, 190, 0.95));
+}
+.wk-wire.is-late {
+  left: 623px;
+  width: 60px;
+}
+.wk-wire i {
+  position: absolute;
+  left: 0;
+  top: -1px;
+  width: 16px;
+  height: 4px;
+  border-radius: 2px;
+  background: #e9fff7;
+  box-shadow:
+    0 0 6px var(--mint),
+    0 0 12px rgba(61, 255, 190, 0.6);
+  opacity: 0;
+  animation: wk-run 2.4s linear infinite;
+}
+.wk-wire.is-late i {
+  animation-delay: 0.45s;
+}
+@keyframes wk-run {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  4% {
+    opacity: 1;
+  }
+  26% {
+    opacity: 1;
+  }
+  30% {
+    transform: translateX(46px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(46px);
+    opacity: 0;
+  }
+}
+.wk-shield {
+  left: 325px;
+  top: 73px;
+  width: 297px;
+  height: 301px;
+}
+.wk-ring {
+  position: absolute;
+  inset: 0;
+  border: 1px dashed var(--green);
+  border-radius: 36px;
+}
+.wk-core {
+  position: absolute;
+  inset: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 42px;
+  gap: 4px;
+  border-radius: 30px;
+}
+.wk-core img {
+  width: 123px;
+  height: 133px;
+  margin-bottom: -20px;
+}
+.wk-core b {
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.wk-chip {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-top: 18px;
+  border-radius: 20px;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
+}
+.wk-chip svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.2;
+}
+.wk-chip span {
+  width: 5.2em;
+}
+.wk-send {
+  left: -52px;
+  top: -73px;
+  width: 106px;
+  height: 106px;
+}
+.wk-recv {
+  left: 229px;
+  top: 254px;
+  width: 112px;
+  height: 112px;
+  padding-top: 22px;
+}
+.wk-fan {
+  left: 941px;
+  top: 138px;
+  width: 52px;
+  height: 172px;
+  overflow: visible;
+}
+.wk-fan path {
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.wk-fan-line {
+  stroke: rgba(255, 162, 0, 0.55);
+}
+.wk-fan-spark {
+  stroke: #ffc44d;
+  stroke-dasharray: 18 82;
+  stroke-dashoffset: 100;
+  filter: drop-shadow(0 0 4px #ffa200);
+  animation: wk-fan 2.4s linear infinite 0.9s;
+}
+@keyframes wk-fan {
+  0% {
+    stroke-dashoffset: 100;
+    opacity: 1;
+  }
+  40% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  41%,
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+.wk-defi {
+  left: 992px;
+  top: 0;
+  width: 162px;
+  height: 440px;
+}
+.wk-defi b {
+  position: absolute;
+  left: 0;
+  top: 70px;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.wk-defi ul {
+  position: absolute;
+  left: 0;
+  top: 106px;
+  display: grid;
+  gap: 20px;
+  width: 100%;
+}
+.wk-defi li {
+  height: 65px;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  font-size: 20px;
+  line-height: 1.2;
+}
+.wk-more {
+  position: absolute;
+  left: 50%;
+  top: 372px;
+  display: flex;
+  gap: 5px;
+  transform: translateX(-50%);
+}
+.wk-more i {
+  width: 3.5px;
+  height: 3.5px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+/* ---------- Supported Shield Tools：标题占第一格，2 + 3 张卡 ---------- */
+.tools-sec {
+  padding-top: clamp(96px, 10vw, 156px);
+}
+.tools {
+  width: min(1066px, 100% - 2 * var(--gutter));
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 29px 31px;
+}
+.tools-list {
+  display: contents;
+}
+.tools-title {
+  align-self: center;
+  font-size: clamp(30px, 2.8vw, 42px);
+  line-height: 1.5;
+  font-weight: 600;
 }
 .tool {
   position: relative;
+  height: 192px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  padding: 40px 16px 34px;
-  border-radius: 20px;
-  background: var(--card);
-  border: 1px solid #2c2c2c;
-  text-align: center;
+  justify-content: center;
+  gap: 20px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid #424242;
 }
 .tool img {
-  width: 64px;
-  height: 64px;
-  border-radius: 12px;
+  width: 60px;
+  height: 60px;
+  border-radius: 6px;
 }
 .tool b {
-  font-size: 18px;
+  padding: 0 12px;
+  font-size: clamp(20px, 1.8vw, 26px);
+  line-height: 1.3;
   font-weight: 600;
-  line-height: 1.25;
+  text-align: center;
 }
 .tool.is-soon {
-  background: #121212;
-  border-color: #222;
+  background: rgba(255, 255, 255, 0.035);
+  border-color: #2c2c2c;
 }
 .tool.is-soon img {
-  filter: grayscale(1);
-  opacity: 0.4;
+  opacity: 0.55;
 }
 .tool.is-soon b {
-  color: #6d6d74;
+  color: #707070;
 }
 .tool em {
   position: absolute;
-  top: 14px;
-  right: 14px;
-  padding: 2px 8px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid #2e2e2e;
+  top: 12px;
+  right: 12px;
+  padding: 3px 9px;
+  border-radius: 4px;
+  background: #2b2b2b;
   font-style: normal;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: #8b8e93;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #8e8e8e;
 }
 
-/* ---------- 收尾 ---------- */
+/* ---------- 收尾：大标题 + 按钮，下面是雕像和大字 Noir Wallet ---------- */
 .end {
   position: relative;
-  margin-top: clamp(80px, 9vw, 136px);
+  z-index: 1;
+  padding-top: clamp(120px, 19vw, 300px);
   text-align: center;
-  padding: clamp(96px, 11vw, 168px) 0;
-  overflow: hidden;
-}
-.end::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle, #1d1d1d 1.1px, transparent 1.7px) 0 0 / 14px 14px;
-  -webkit-mask-image: radial-gradient(50% 60% at 50% 100%, #000, transparent 80%);
-  mask-image: radial-gradient(50% 60% at 50% 100%, #000, transparent 80%);
-}
-.end .wrap {
-  position: relative;
 }
 .end h2 {
-  font-size: clamp(38px, 4.6vw, 64px);
-  line-height: 1.08;
+  font-size: clamp(36px, 4.4vw, 60px);
+  line-height: 1.2;
   font-weight: 600;
-}
-.end p {
-  font-size: 18px;
-  color: var(--sub);
-  margin: 18px auto 30px;
-  max-width: 30em;
-}
-.end p b {
-  color: #fff;
-  font-weight: 500;
 }
 .end .cta-row {
   justify-content: center;
+  margin-top: 40px;
+}
+.end .btn {
+  min-height: 50px;
+  font-size: 16px;
+  padding: 0 24px;
 }
 .end .desk-note {
   max-width: 460px;
   margin: 24px auto 0;
   text-align: left;
 }
-
 .site-foot {
-  border-top: 1px solid var(--hair);
-  padding: 28px 0 44px;
-  color: var(--mute);
-  font-size: 14px;
+  position: relative;
+  margin-top: -62px;
+  padding-bottom: clamp(48px, 10vw, 150px);
+  text-align: center;
+  overflow: hidden;
 }
-.site-foot .wrap {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px 24px;
-  flex-wrap: wrap;
+.statue {
+  position: relative;
+  /* 自成一层：里面的渐变压在粒子画布上，但不会盖到上方 .end 里的按钮。 */
+  isolation: isolate;
+  height: clamp(320px, 48.2vw, 729px);
 }
-.site-foot nav {
-  display: flex;
-  gap: 20px;
+.statue img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 0;
+  transition: opacity 0.8s ease;
 }
-.site-foot a {
-  color: var(--sub);
-  text-decoration: none;
+/* 粒子画布（Statue.tsx / particles.ts）：准备好后淡入，原图照常垫在下面（照 ReactBits 的 Image Opacity 1）。 */
+.statue canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.8s ease;
 }
-.site-foot a:hover {
-  color: #fff;
+.statue.is-live canvas {
+  opacity: 1;
+}
+
+.statue::before,
+.statue::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  right: 0;
+  height: 150px;
+  pointer-events: none;
+}
+.statue::before {
+  top: 0;
+  background: linear-gradient(#000, transparent);
+}
+.statue::after {
+  bottom: 0;
+  background: linear-gradient(transparent, #000);
+}
+.foot-copy {
+  position: relative;
+  margin-top: -78px;
+  font-size: 16px;
+  font-weight: 100;
+  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.75);
+}
+.wordmark {
+  margin-top: 6px;
+  font-size: clamp(64px, 13.3vw, 200px);
+  font-weight: 900;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  opacity: 0.3;
+  background: linear-gradient(180deg, #fff 17%, #000 103%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 /* ---------- 窄屏 ---------- */
-@media (max-width: 1100px) {
-  .tool-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  .entry-card {
+/* 1100 以下：功能区改成上下排，钱包截图居中 */
+@media (max-width: 1099px) {
+  .pt-card {
     grid-template-columns: minmax(0, 1fr);
+    padding: 44px clamp(16px, 4vw, 44px) 0;
   }
-  .entry-stage {
-    border-right: 0;
-    border-bottom: 1px solid #2a2a2a;
-    padding: 32px 16px;
+  .pt-side {
+    padding-bottom: 36px;
   }
-  .flow {
+  .pt-tabs {
+    margin-top: 28px;
+  }
+  /* 手机框缩到 80%：Send 那张伸出去的标注不会被卡片边缘切掉 */
+  .pt-shot {
+    grid-row: 2;
+    width: min(375px, 80%);
+    justify-self: center;
+    margin-bottom: calc(min(375px, 80%) * -0.128);
+  }
+  .su {
     grid-template-columns: minmax(0, 1fr);
-    max-width: 440px;
+    row-gap: 48px;
   }
-  .wire svg,
-  .fan svg {
-    display: none;
+  .su-copy {
+    padding-top: 0;
   }
-  .p-down {
-    display: block;
-    position: relative;
-    width: 3px;
-    height: 56px;
-    margin: 0 auto;
-    background: radial-gradient(circle, var(--mint) 1.4px, transparent 1.8px) 0 0 / 3px 10px;
+  .su-points {
+    margin-top: 32px;
+    gap: 20px;
   }
-  .fan .p-down {
-    background-image: radial-gradient(circle, var(--amber) 1.4px, transparent 1.8px);
-  }
-  .p-down i {
-    position: absolute;
-    left: 50%;
-    top: 0;
-    width: 8px;
-    height: 8px;
-    margin-left: -4px;
-    border-radius: 50%;
-    opacity: 0;
-    animation: drop-in 4.8s linear infinite;
-  }
-  .wire-pub .p-down i {
-    background: #fff;
-    box-shadow: 0 0 6px rgba(255, 255, 255, 0.9);
-  }
-  .wire-priv .p-down i,
-  .fan .p-down i {
-    background: var(--gold);
-    box-shadow: 0 0 8px rgba(255, 204, 0, 0.9);
-    animation-name: drop-out;
-  }
-  .fan .p-down i {
-    animation-name: drop-fan;
-  }
-  .node-shield {
-    margin: 14px 0;
-  }
-  .defi {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-  }
-  .defi-h {
-    position: static;
-    grid-column: 1 / -1;
-    margin: 0 0 4px;
-    text-align: center;
-  }
-  .leaf {
-    justify-content: center;
-    padding: 0 8px;
-    font-size: 15px;
-  }
-}
-@keyframes drop-in {
-  0% {
-    top: 0;
-    opacity: 0;
-  }
-  3% {
-    opacity: 1;
-  }
-  22% {
-    opacity: 1;
-  }
-  25% {
-    top: calc(100% - 8px);
-    opacity: 0;
-  }
-  100% {
-    top: calc(100% - 8px);
-    opacity: 0;
-  }
-}
-@keyframes drop-out {
-  0%,
-  38% {
-    top: 0;
-    opacity: 0;
-  }
-  41% {
-    opacity: 1;
-  }
-  59% {
-    opacity: 1;
-  }
-  62% {
-    top: calc(100% - 8px);
-    opacity: 0;
-  }
-  100% {
-    top: calc(100% - 8px);
-    opacity: 0;
-  }
-}
-@keyframes drop-fan {
-  0%,
-  64% {
-    top: 0;
-    opacity: 0;
-  }
-  67% {
-    opacity: 1;
-  }
-  83% {
-    opacity: 1;
-  }
-  86% {
-    top: calc(100% - 8px);
-    opacity: 0;
-  }
-  100% {
-    top: calc(100% - 8px);
-    opacity: 0;
+  /* 手机框缩到 74%：ZEC 那行往两边伸出去的标注留在屏幕里 */
+  .su-shot {
+    justify-self: center;
+    width: min(375px, 74%);
+    margin-right: 0;
   }
 }
 
-@media (max-width: 760px) {
-  .tool-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-  }
-  .tool {
-    padding: 32px 12px 26px;
-  }
-  .tool img {
-    width: 52px;
-    height: 52px;
-  }
-  .tool b {
-    font-size: 16px;
-  }
+/* 760 以下：路径图改成竖排，工具卡两列，收尾大字按屏宽缩小 */
+@media (max-width: 759px) {
   .site-nav {
     display: none;
   }
@@ -2694,33 +1259,197 @@ button.nw-iconbtn:hover {
     flex: 1;
     min-width: 0;
   }
+  /* 手机装不了扩展，演示按钮单独占满一行，排在主按钮那一行下面、提示条上面。 */
+  .hero .cta-row .btn-try {
+    flex-basis: 100%;
+    order: 1;
+  }
   .chain-mark > span {
     font-size: 13px;
   }
-  .stat-num {
-    font-size: 44px;
+
+  .pt-tab {
+    min-height: 0;
+    padding: 18px 18px 18px 20px;
   }
-  /* 手机上钱包变窄，路线卡的说明会折行，钱包加高一点，免得出现滚动条 */
-  .nw {
-    height: 580px;
+  .pt-tab b {
+    font-size: 21px;
   }
-  .stages {
-    gap: 4px;
+  .pt-body {
+    font-size: 15px;
+    margin-top: 8px;
   }
-  .stage {
-    padding: 14px 10px;
+  .su-points li {
+    font-size: 17px;
+  }
+
+  .da-copy,
+  .da-art {
+    grid-area: auto;
+  }
+  .da-copy {
+    margin: 0 0 28px;
+  }
+
+  .works-fit {
+    height: auto;
+    margin-top: 48px;
+  }
+  .works {
+    left: auto;
+    width: auto;
+    height: auto;
+    max-width: 320px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform: none;
+  }
+  .works > * {
+    position: relative;
+    left: auto;
+    top: auto;
+  }
+  .wk-box {
+    width: 100%;
+    height: 72px;
+    font-size: 22px;
+  }
+  .wk-wire,
+  .wk-wire.is-late {
+    left: auto;
+    top: auto;
+    width: 2px;
+    height: 44px;
+    background: linear-gradient(180deg, rgba(0, 209, 138, 0.12), rgba(61, 255, 190, 0.95));
+  }
+  .wk-wire i {
+    left: -1px;
+    top: 0;
+    width: 4px;
+    height: 14px;
+    animation-name: wk-drop;
+  }
+  .wk-shield {
+    width: 250px;
+    height: 250px;
+    margin: 58px 0 54px;
+  }
+  .wk-core {
+    padding-top: 30px;
+  }
+  .wk-core img {
+    width: 100px;
+    height: 108px;
+    margin-bottom: -16px;
+  }
+  .wk-core b {
+    font-size: 22px;
+  }
+  .wk-send {
+    left: -26px;
+    top: -52px;
+    width: 92px;
+    height: 92px;
+    padding-top: 14px;
+    font-size: 15px;
+  }
+  .wk-recv {
+    left: auto;
+    right: -26px;
+    top: auto;
+    bottom: -48px;
+    width: 96px;
+    height: 96px;
+    padding-top: 16px;
+    font-size: 15px;
+  }
+  .wk-fan {
+    display: none;
+  }
+  .wk-priv {
+    margin-bottom: 44px;
+  }
+  .wk-defi {
+    width: 100%;
+    height: auto;
+    text-align: center;
+  }
+  .wk-defi b,
+  .wk-defi ul,
+  .wk-more {
+    position: static;
+    transform: none;
+  }
+  .wk-defi ul {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .wk-defi li {
+    height: 52px;
+    border-radius: 14px;
+    font-size: 16px;
+  }
+  .wk-more {
+    justify-content: center;
+    margin-top: 16px;
+  }
+
+  .tools {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .tools-title {
+    grid-column: 1 / -1;
+    margin-bottom: 8px;
+  }
+  .tool {
+    height: 148px;
     gap: 14px;
   }
-  .stage-bar {
-    left: 44px;
-    right: 10px;
-    bottom: 5px;
+  .tool img {
+    width: 48px;
+    height: 48px;
   }
-  .entry-side {
-    padding: 20px 14px 24px;
+  .tool b {
+    font-size: 17px;
   }
-  .node b {
-    font-size: 20px;
+
+  .end .cta-row {
+    margin-top: 28px;
+  }
+  .site-foot {
+    margin-top: -24px;
+  }
+  .statue img {
+    object-position: 30% 0;
+  }
+  .foot-copy {
+    margin-top: -40px;
+    font-size: 13px;
+    font-weight: 300;
+  }
+}
+@keyframes wk-drop {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  4% {
+    opacity: 1;
+  }
+  26% {
+    opacity: 1;
+  }
+  30% {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(30px);
+    opacity: 0;
   }
 }
 
@@ -2729,34 +1458,33 @@ button.nw-iconbtn:hover {
     scroll-behavior: auto;
   }
   .is-shield .chain-mark::after,
-  .hw-home.is-shield::after,
-  .wire-line,
-  .node-shield,
-  .cipher i,
-  .leaf,
-  .p-down i,
-  .nw-track i,
-  .nw-lanes i::after,
-  .nw-hand,
-  .nw-anim,
-  .hw-dapp,
-  .hw-view,
-  .hs-card,
-  .nw-note {
+  .wk-wire i,
+  .wk-fan-spark,
+  .da.is-in .da-wire path,
+  .da.is-in .da-ping {
     animation: none;
   }
-  .packet,
-  .p-down i {
+  .wk-wire i,
+  .wk-fan-spark,
+  .da-wire,
+  .da-ping {
     display: none;
-  }
-  .nw-lanes i::after {
-    opacity: 1;
   }
   .chain-mark::before,
   .chain-mark::after,
   .chain-mark > span,
-  .hw-card,
-  .hw-card b {
+  .pt-shot img,
+  .su-copy,
+  .su-shot,
+  .da-copy,
+  .da-art {
     transition: none;
+  }
+  .feat-row:not(.is-in) .su-copy,
+  .feat-row:not(.is-in) .su-shot,
+  .feat-row:not(.is-in) .da-copy,
+  .feat-row:not(.is-in) .da-art {
+    opacity: 1;
+    transform: none;
   }
 }

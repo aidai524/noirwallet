@@ -1,16 +1,16 @@
 /**
- * 首屏（按设计稿）：点阵铺底，左边文案，右边新版钱包，点阵上标着支持的链。
- * 钱包切到 Shield 时，从钱包发出一道扫描波：扫过的点闪一下，链标记依次套上护盾，
- * 钱包换成 Shield 视图（各隐私服务商的余额）。悬停点阵显示每个点的编号。
+ * 首屏（按设计稿）：点阵铺底，左边文案，右边钱包首页（Shield 视图），点阵上标着支持的链。
+ * 每隔几秒从钱包的 Shield 卡片发出一道扫描波：扫过的点闪一下，链标记依次套上护盾再褪回原色。
+ * 悬停点阵显示每个点的编号；点钱包图和「Try the extension」一样，打开可以操作的演示钱包。
  */
 import { useEffect, useRef, useState } from "react";
 import { walletLinkProps } from "../walletStore";
-import { IMG } from "./content";
+import { PHONE_WIDTH, PHONES, frameStyle } from "./content";
+import { loadDemo } from "./demoLoader";
 import { DeskNote } from "./DeskNote";
-import { HeroWallet, type HeroMode } from "./HeroWallet";
 import { Icon } from "./Icon";
 import { prefersReducedMotion, useInView } from "./motion";
-import { Scramble } from "./Scramble";
+import { TryExtension } from "./TryExtension";
 
 type Tone = "blue" | "gold" | "base";
 type Kind = "wide" | "mid" | "band";
@@ -36,6 +36,11 @@ const MARKS: {
 ];
 
 const WAVE_MS = 1400;
+/** 两道扫描波之间的间隔；链标记在波过去后保持护盾的时长。 */
+const WAVE_EVERY = 7500;
+const SHIELD_HOLD = WAVE_MS + 1500;
+/** 扫描波的起点：钱包图里 Shield 卡片的中心离手机框顶部 157px（手机框 375 宽时），按宽度的比例换算。 */
+const SHIELD_CARD_Y = 157 / PHONE_WIDTH;
 const TAU = Math.PI * 2;
 /** 点阵的灰点：#1D1D1D；压在文案下面的再暗一档，保证文字清楚。 */
 const DOT = "29,29,29";
@@ -48,12 +53,12 @@ type Parts = {
   marks: HTMLElement[];
   /** 文案列，用来算设计稿里各个标记的横向位置。 */
   column: HTMLElement;
-  /** 钱包所在的格子，用来避开钱包、确定扫描波的起点。 */
+  /** 钱包截图，用来确定扫描波的起点。 */
   phone: HTMLElement;
 };
 
 type Field = {
-  setMode: (mode: HeroMode) => void;
+  wave: () => void;
   destroy: () => void;
 };
 
@@ -63,7 +68,7 @@ function clamp01(value: number) {
 
 function createField({ stage, canvas, tip, marks, column, phone }: Parts, reduced: boolean): Field {
   const context = canvas.getContext("2d");
-  if (!context) return { setMode: () => {}, destroy: () => {} };
+  if (!context) return { wave: () => {}, destroy: () => {} };
   const ctx = context;
 
   let cols = 101;
@@ -130,8 +135,10 @@ function createField({ stage, canvas, tip, marks, column, phone }: Parts, reduce
     const wrapWidth = col.width;
     const phoneBox = phone.getBoundingClientRect();
     const walletLeft = phoneBox.left - box.left;
-    const cards = phone.querySelector(".hw-cards")?.getBoundingClientRect() ?? phoneBox;
-    origin = { x: cards.left + cards.width / 2 - box.left, y: cards.top + cards.height / 2 - box.top };
+    origin = {
+      x: phoneBox.left + phoneBox.width / 2 - box.left,
+      y: phoneBox.top + phoneBox.width * SHIELD_CARD_Y - box.top,
+    };
     reach = Math.hypot(width, height) * 0.9;
 
     markIndex = marks.map((node, k) => {
@@ -267,11 +274,10 @@ function createField({ stage, canvas, tip, marks, column, phone }: Parts, reduce
   kick();
 
   return {
-    setMode(next) {
-      if (next === "shield" && !reduced) {
-        waveAt = performance.now();
-        kick();
-      }
+    wave() {
+      if (reduced) return;
+      waveAt = performance.now();
+      kick();
     },
     destroy() {
       cancelAnimationFrame(raf);
@@ -283,60 +289,10 @@ function createField({ stage, canvas, tip, marks, column, phone }: Parts, reduce
   };
 }
 
-/** 网络和代币数量。滚到这里时数字从打码状态解开。 */
-function Stats() {
-  const ref = useRef<HTMLDivElement>(null);
-  const seen = useInView(ref, 0.5, true);
-  return (
-    <div ref={ref} className="hero-wrap stats">
-      <div className="stat">
-        <div className="stat-top">
-          <b className="stat-num">
-            <Scramble text={seen ? "5" : "*"} label="5" />
-          </b>
-          <span className="stat-icons" aria-hidden="true">
-            <img src={IMG.zecChain} alt="" />
-            <span className="evm-grid">
-              <img src={IMG.ethChip} alt="" />
-              <img src={IMG.arbChip} alt="" />
-              <i className="base" />
-              <img className="bnb" src={IMG.bnbChip} alt="" />
-            </span>
-            <span className="ico-sol soon">
-              <img src={IMG.solGlyph} alt="" />
-            </span>
-            <span className="ico-btc soon">
-              <img src={IMG.btc} alt="" />
-            </span>
-            <img className="soon" src={IMG.nearChain} alt="" />
-          </span>
-        </div>
-        <p className="stat-title">Supported Networks</p>
-        <p className="stat-sub">Soon Solana, Bitcoin, NEAR</p>
-      </div>
-      <div className="stat">
-        <div className="stat-top">
-          <b className="stat-num">
-            <Scramble text={seen ? "100+" : "***+"} label="100+" />
-          </b>
-          <span className="stat-coins" aria-hidden="true">
-            <img src={IMG.zecCoin} alt="" />
-            <img src={IMG.usdt} alt="" />
-            <img src={IMG.usdc} alt="" />
-            <img src={IMG.eth} alt="" />
-          </span>
-        </div>
-        <p className="stat-title">Supported Tokens</p>
-        <p className="stat-sub">More is coming</p>
-      </div>
-    </div>
-  );
-}
-
-export function Hero() {
+export function Hero({ onTry }: { onTry: () => void }) {
   const [reduced] = useState(prefersReducedMotion);
-  const [mode, setMode] = useState<HeroMode>("wallet");
-  const [auto, setAuto] = useState(!reduced);
+  // 扫描波经过时链标记套上护盾，过一会儿按同样的顺序褪回原色。
+  const [shielded, setShielded] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const tipRef = useRef<HTMLDivElement>(null);
@@ -362,27 +318,28 @@ export function Hero() {
     };
   }, [reduced]);
 
+  // 首屏在视口里时，开场点阵铺满后放第一道波，之后每 7.5 秒一道。
   useEffect(() => {
-    field.current?.setMode(mode);
-  }, [mode]);
+    if (reduced || !visible) return;
+    const timers: number[] = [];
+    const pulse = () => {
+      field.current?.wave();
+      setShielded(true);
+      timers.push(window.setTimeout(() => setShielded(false), SHIELD_HOLD));
+    };
+    timers.push(window.setTimeout(pulse, 1600));
+    const every = window.setInterval(pulse, WAVE_EVERY);
+    return () => {
+      window.clearInterval(every);
+      timers.forEach((id) => window.clearTimeout(id));
+      setShielded(false);
+    };
+  }, [reduced, visible]);
 
-  // 自动在 Wallet / Shield 之间来回切，用户点过开关就停。
-  useEffect(() => {
-    if (!auto || !visible) return;
-    const id = window.setTimeout(
-      () => setMode((current) => (current === "wallet" ? "shield" : "wallet")),
-      mode === "wallet" ? 4500 : 5200,
-    );
-    return () => window.clearTimeout(id);
-  }, [auto, visible, mode]);
-
-  const choose = (next: HeroMode) => {
-    setAuto(false);
-    setMode(next);
-  };
+  const warm = () => void loadDemo();
 
   return (
-    <section className={`hero is-${mode}`} aria-labelledby="hero-title">
+    <section className={`hero${shielded ? " is-shield" : ""}`} aria-labelledby="hero-title">
       <div ref={stageRef} className="hero-stage">
         <div className="hero-copy">
           <div ref={columnRef} className="hero-wrap">
@@ -396,11 +353,7 @@ export function Hero() {
                 <a className="btn" {...walletLinkProps}>
                   Get Noir Wallet
                 </a>
-                {/* 现有官网的 Docs 还没有文档地址，先指向页尾的 Docs。 */}
-                <a className="btn btn-ghost" href="#docs">
-                  Docs
-                  <Icon name="external" />
-                </a>
+                <TryExtension variant="cta" onOpen={onTry} />
               </div>
               <DeskNote />
             </div>
@@ -431,18 +384,24 @@ export function Hero() {
       <div className="hero-phone-layer">
         <div className="hero-wrap">
           <div ref={phoneRef} className="hero-phone">
-            <HeroWallet mode={mode} onMode={choose} />
+            <img
+              src={PHONES.hero.src}
+              width={PHONES.hero.width}
+              height={PHONES.hero.height}
+              style={frameStyle(PHONES.hero)}
+              fetchPriority="high"
+              alt="Noir Wallet home: a Shield balance of $4,489.21 across privacy providers, with $1,406.56 available to shield, above the Public and Incognito accounts."
+            />
+            {/* 点钱包图也能打开演示，只给鼠标和触屏用：键盘和读屏走文案旁边的按钮，这里不重复、也不抢焦点。 */}
+            <div className="hero-phone-hit" aria-hidden="true" onClick={onTry} onPointerEnter={warm}>
+              <span className="hero-phone-hint">
+                <Icon name="pointer" />
+                Try the extension
+              </span>
+            </div>
           </div>
         </div>
       </div>
-
-      <div className="hero-below">
-        <Stats />
-      </div>
-
-      <p className="sr" aria-live="polite">
-        {mode === "shield" ? "Shield view: your balance across privacy providers." : "Wallet view."}
-      </p>
     </section>
   );
 }
